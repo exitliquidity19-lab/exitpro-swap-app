@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>EXIT PRO - Elite Swap</title>
+  <title>EXIT PRO - HyperSwap Elite</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
   <style>
@@ -15,29 +15,27 @@
     .neon-text { color: var(--neon); text-shadow: 0 0 10px rgba(0, 255, 157, 0.4); }
     #token-modal { background: rgba(0,0,0,0.9); backdrop-filter: blur(12px); display: none; }
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    .max-btn { font-size: 10px; background: rgba(0, 255, 157, 0.1); color: var(--neon); padding: 2px 6px; border-radius: 4px; cursor: pointer; }
+    .max-btn { font-size: 10px; background: rgba(0, 255, 157, 0.1); color: var(--neon); padding: 2px 6px; border-radius: 4px; cursor: pointer; font-weight: 800; }
     .max-btn:hover { background: var(--neon); color: black; }
-    .custom-scroll::-webkit-scrollbar { width: 4px; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: var(--neon); border-radius: 10px; }
   </style>
 </head>
 <body class="flex flex-col min-h-screen items-center justify-center px-4">
 
-  <nav class="fixed top-0 w-full flex justify-between items-center p-6 z-50 bg-[#090b0f]/80 backdrop-blur-md">
+  <nav class="fixed top-0 w-full flex justify-between items-center p-6 z-50 bg-[#090b0f]/80 backdrop-blur-md border-b border-white/5">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-full border-2 border-[#00ff9d] p-0.5 overflow-hidden">
         <img src="assets/logo.png" class="w-full h-full object-cover rounded-full" onerror="this.src='https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'"/>
       </div>
       <span class="font-black text-xl tracking-tighter neon-text uppercase italic">EXIT PRO</span>
     </div>
-    <button id="connect-btn" class="px-5 py-2 border border-[#00ff9d] text-[#00ff9d] rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:bg-[#00ff9d] hover:text-black">
+    <button id="connect-btn" class="px-5 py-2 border border-[#00ff9d] text-[#00ff9d] rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
       Connect Wallet
     </button>
   </nav>
 
   <div class="glass-card w-full max-w-[440px] p-6 relative">
     <div class="flex justify-between items-center mb-8">
-      <h2 class="font-black text-xl italic neon-text tracking-widest">SWAP</h2>
+      <h2 class="font-black text-xl italic neon-text tracking-widest uppercase">Swap</h2>
       <span class="text-[9px] font-bold text-[#00ff9d] bg-[#00ff9d]/10 px-2 py-1 rounded border border-[#00ff9d]/20 uppercase">Mainnet Beta</span>
     </div>
 
@@ -46,7 +44,7 @@
         <span>You Sell</span>
         <div class="flex items-center gap-2">
             <span id="from-bal">Bal: 0.00</span>
-            <span class="max-btn" onclick="setMax()">MAX</span>
+            <span class="max-btn" id="max-btn">MAX</span>
         </div>
       </div>
       <div class="flex items-center gap-4">
@@ -94,22 +92,16 @@
       </div>
       
       <div class="relative mb-8">
-        <input id="ca-search" type="text" placeholder="Paste Contract Address (CA)" class="w-full bg-black/60 border border-white/10 rounded-2xl p-4 pl-12 outline-none focus:border-[#00ff9d] text-sm transition-all" />
+        <input id="ca-search" type="text" placeholder="Paste Contract Address (CA)" class="w-full bg-black/60 border border-white/10 rounded-2xl p-4 pl-12 outline-none focus:border-[#00ff9d] text-sm transition-all text-[#00ff9d]" />
         <svg class="w-5 h-5 absolute left-4 top-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
       </div>
       
       <div class="text-[10px] font-black text-[#00ff9d]/40 uppercase mb-4 tracking-widest">Verified Tokens</div>
-      <div class="flex flex-col gap-3 max-h-72 overflow-y-auto pr-2 custom-scroll" id="token-list-container">
-        <div onclick="selectQuick('SOL', 'So11111111111111111111111111111111111111112', 9, 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png')" class="flex items-center justify-between bg-white/5 p-4 rounded-2xl cursor-pointer hover:bg-[#00ff9d]/10 border border-white/5 transition">
+      <div class="flex flex-col gap-3 max-h-72 overflow-y-auto pr-2 custom-scroll" id="token-list">
+        <div onclick="selectToken('SOL', 'So11111111111111111111111111111111111111112', 9, 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png')" class="flex items-center justify-between bg-white/5 p-4 rounded-2xl cursor-pointer hover:bg-[#00ff9d]/10 border border-white/5 transition">
           <div class="flex items-center gap-3">
             <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" class="w-9 h-9 rounded-full shadow-md"/>
             <div class="flex flex-col"><span class="font-black text-sm uppercase">SOL</span><span class="text-[10px] opacity-40">Solana Native</span></div>
-          </div>
-        </div>
-        <div onclick="selectQuick('USDC', 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', 6, 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png')" class="flex items-center justify-between bg-white/5 p-4 rounded-2xl cursor-pointer hover:bg-[#00ff9d]/10 border border-white/5 transition">
-          <div class="flex items-center gap-3">
-            <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png" class="w-9 h-9 rounded-full shadow-md"/>
-            <div class="flex flex-col"><span class="font-black text-sm uppercase">USDC</span><span class="text-[10px] opacity-40">USD Coin</span></div>
           </div>
         </div>
       </div>
@@ -117,21 +109,32 @@
   </div>
 
   <script>
-    const RPC = 'https://api.mainnet-beta.solana.com';
     const JUP_API = 'https://quote-api.jup.ag/v6';
+    const RPC = 'https://api.mainnet-beta.solana.com';
     let walletPK = null, provider = null, quoteData = null, activeSide = 'from';
-    let currentBalances = { from: 0, to: 0 };
+    let balances = { from: 0, to: 0 };
 
     let tokens = {
       from: { mint: 'So11111111111111111111111111111111111111112', symbol: 'SOL', decimals: 9, logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png' },
       to: { mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol: 'USDC', decimals: 6, logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png' }
     };
 
-    // ELITE CONNECT/DISCONNECT
+    // ELITE CONNECT & TOGGLE DISCONNECT (NO ALERTS)
     document.getElementById('connect-btn').onclick = async () => {
-      if(walletPK) { logout(); return; }
+      if(walletPK) { 
+        walletPK = null; provider = null;
+        document.getElementById('connect-btn').textContent = "Connect Wallet";
+        document.getElementById('connect-btn').classList.remove('bg-[#00ff9d]', 'text-black');
+        document.getElementById('swap-btn').textContent = "Connect Wallet";
+        document.getElementById('swap-btn').disabled = true;
+        document.getElementById('from-bal').textContent = "Bal: 0.00";
+        document.getElementById('to-bal').textContent = "Bal: 0.00";
+        return; 
+      }
+      
       const wallet = window.solana || window.solflare || window.backpack;
-      if(!wallet) return alert("Buka di Browser Solflare/Phantom!");
+      if(!wallet) return alert("Open in Solflare/Phantom App!");
+      
       try {
         const res = await wallet.connect();
         walletPK = (res?.publicKey || wallet.publicKey).toString();
@@ -140,126 +143,83 @@
         document.getElementById('connect-btn').classList.add('bg-[#00ff9d]', 'text-black');
         document.getElementById('swap-btn').textContent = "Swap Now";
         document.getElementById('swap-btn').disabled = false;
-        refreshBalances();
+        updateBalances();
       } catch(e) {}
     };
 
-    function logout() {
-      walletPK = null; provider = null;
-      document.getElementById('connect-btn').textContent = "Connect Wallet";
-      document.getElementById('connect-btn').classList.remove('bg-[#00ff9d]', 'text-black');
-      document.getElementById('swap-btn').textContent = "Connect Wallet";
-      document.getElementById('swap-btn').disabled = true;
-      document.getElementById('from-bal').textContent = "Bal: 0.00";
-      document.getElementById('to-bal').textContent = "Bal: 0.00";
-    }
-
-    function openSelector(side) { 
-      activeSide = side; 
-      document.getElementById('token-modal').style.display = 'flex'; 
-      document.getElementById('ca-search').value = '';
-    }
-    function closeModal() { document.getElementById('token-modal').style.display = 'none'; }
-
-    // FIXED: CA SEARCH LIKE JUPITER
+    // CA SEARCH LIKE JUPITER
     document.getElementById('ca-search').oninput = async (e) => {
       const ca = e.target.value.trim();
       if(ca.length >= 32) {
-        document.getElementById('status').textContent = "SEARCHING ON BLOCKCHAIN...";
+        document.getElementById('status').textContent = "FETCHING TOKEN...";
         try {
-          // Gunakan Jupiter Token List API (Paling Akurat)
-          const metaRes = await fetch(`https://tokens.jup.ag/token/${ca}`);
-          if (!metaRes.ok) throw new Error('Token Not Found');
-          const token = await metaRes.json();
-          
+          const res = await fetch(`https://tokens.jup.ag/token/${ca}`);
+          const token = await res.json();
           if(token && token.symbol) {
-            tokens[activeSide] = {
-              mint: ca,
-              symbol: token.symbol,
-              decimals: token.decimals,
-              logo: token.logoURI || 'https://via.placeholder.com/32/00ff9d/000?text=?'
-            };
-            updateTokenUI(activeSide);
+            selectToken(token.symbol, ca, token.decimals, token.logoURI || '');
             closeModal();
-            refreshBalances();
-            getQuote();
-            document.getElementById('status').textContent = "TOKEN LOADED";
+            document.getElementById('status').textContent = "TOKEN READY";
           }
-        } catch(e) { 
-          document.getElementById('status').textContent = "TOKEN NOT FOUND ON JUPITER LIST"; 
-        }
+        } catch(e) { document.getElementById('status').textContent = "CA NOT FOUND"; }
       }
     };
 
-    function selectQuick(sym, mint, decimals, logo) {
-      tokens[activeSide] = { mint, symbol: sym, decimals, logo };
-      updateTokenUI(activeSide);
-      closeModal();
-      refreshBalances();
+    function selectToken(sym, mint, dec, logo) {
+      tokens[activeSide] = { mint, symbol: sym, decimals: dec, logo: logo || 'https://via.placeholder.com/32/00ff9d/000?text=?' };
+      document.getElementById(`${activeSide}-symbol`).textContent = sym;
+      document.getElementById(`${activeSide}-logo`).src = tokens[activeSide].logo;
+      updateBalances();
       getQuote();
     }
 
-    function updateTokenUI(side) {
-      document.getElementById(`${side}-symbol`).textContent = tokens[side].symbol;
-      document.getElementById(`${side}-logo`).src = tokens[side].logo;
-    }
+    function openSelector(side) { activeSide = side; document.getElementById('token-modal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('token-modal').style.display = 'none'; }
 
-    function setMax() {
-        if(currentBalances.from > 0) {
-            document.getElementById('from-amount').value = currentBalances.from;
-            getQuote();
-        }
-    }
-
-    document.getElementById('switch-btn').onclick = () => {
-      const temp = {...tokens.from};
-      tokens.from = {...tokens.to};
-      tokens.to = temp;
-      updateTokenUI('from');
-      updateTokenUI('to');
-      refreshBalances();
-      getQuote();
-    };
-
-    // BLOCKCHAIN DATA
-    async function refreshBalances() {
+    // REAL BLOCKCHAIN SYNC
+    async function updateBalances() {
       if(!walletPK) return;
       const conn = new solanaWeb3.Connection(RPC);
       const pk = new solanaWeb3.PublicKey(walletPK);
+      
       try {
-        const solBal = await conn.getBalance(pk);
-        const solVal = (solBal/1e9).toFixed(4);
-
-        if(tokens.from.mint.startsWith('So11')) {
-            currentBalances.from = solVal;
-            document.getElementById('from-bal').textContent = `Bal: ${solVal}`;
-        } else {
-            const accounts = await conn.getParsedTokenAccountsByOwner(pk, { mint: new solanaWeb3.PublicKey(tokens.from.mint) });
+        const getBal = async (mint, side) => {
+          if(mint.startsWith('So11')) {
+            const b = await conn.getBalance(pk);
+            const val = (b/1e9).toFixed(3);
+            balances[side] = val;
+            document.getElementById(`${side}-bal`).textContent = `Bal: ${val}`;
+          } else {
+            const accounts = await conn.getParsedTokenAccountsByOwner(pk, { mint: new solanaWeb3.PublicKey(mint) });
             const val = accounts.value[0]?.account.data.parsed.info.tokenAmount.uiAmount || 0;
-            currentBalances.from = val;
-            document.getElementById('from-bal').textContent = `Bal: ${val.toFixed(2)}`;
-        }
+            balances[side] = val;
+            document.getElementById(`${side}-bal`).textContent = `Bal: ${val.toFixed(2)}`;
+          }
+        };
+        getBal(tokens.from.mint, 'from');
+        getBal(tokens.to.mint, 'to');
       } catch(e) {}
     }
 
+    // JUPITER QUOTE
     async function getQuote() {
       const amt = document.getElementById('from-amount').value;
       if(!amt || amt <= 0) return;
       try {
         const res = await fetch(`${JUP_API}/quote?inputMint=${tokens.from.mint}&outputMint=${tokens.to.mint}&amount=${Math.floor(amt * Math.pow(10, tokens.from.decimals))}&slippageBps=50`);
         quoteData = await res.json();
-        if(quoteData.outAmount) {
-            document.getElementById('to-amount').value = (quoteData.outAmount / Math.pow(10, tokens.to.decimals)).toFixed(4);
-        }
+        document.getElementById('to-amount').value = (quoteData.outAmount / Math.pow(10, tokens.to.decimals)).toFixed(4);
       } catch(e) {}
     }
 
     document.getElementById('from-amount').oninput = getQuote;
+    document.getElementById('max-btn').onclick = () => {
+      document.getElementById('from-amount').value = balances.from;
+      getQuote();
+    };
 
-    // SWAP EXECUTION
     document.getElementById('swap-btn').onclick = async () => {
       if(!quoteData || !walletPK) return;
-      document.getElementById('status').textContent = "SIGNING TRANSACTION...";
+      document.getElementById('status').textContent = "WAITING FOR APPROVAL...";
       try {
         const res = await fetch(`${JUP_API}/swap`, {
           method: 'POST',
@@ -272,12 +232,13 @@
         const signed = await provider.signTransaction(tx);
         const conn = new solanaWeb3.Connection(RPC, 'confirmed');
         const txid = await conn.sendRawTransaction(signed.serialize());
-        document.getElementById('status').innerHTML = `<a href="https://solscan.io/tx/${txid}" target="_blank" class="text-[#00ff9d] underline uppercase font-black">SUCCESS! CLICK TO VIEW</a>`;
+        document.getElementById('status').innerHTML = `<a href="https://solscan.io/tx/${txid}" target="_blank" class="text-[#00ff9d] underline uppercase font-black">SUCCESS! VIEW TRANSACTION</a>`;
       } catch(e) { document.getElementById('status').textContent = "SWAP FAILED"; }
     };
   </script>
 </body>
 </html>
+
 
 
 
