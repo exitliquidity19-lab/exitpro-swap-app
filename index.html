@@ -3,105 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>EXIT PRO Swap - Raydium Style</title>
+  <title>EXIT PRO - Elite Swap</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
   <style>
-    :root { --neon-green: #00ff9d; }
-    body { 
-      background: #090909; 
-      color: #e0fef4; 
-      font-family: 'Inter', sans-serif;
-    }
-    .raydium-card {
-      background: #131a1a;
-      border: 1px solid rgba(0, 255, 157, 0.1);
-      border-radius: 20px;
-    }
-    .token-box {
-      background: #1b2424;
-      border: 1px solid transparent;
-      transition: all 0.2s;
-    }
-    .token-box:focus-within { border-color: var(--neon-green); }
-    .neon-text { color: var(--neon-green); text-shadow: 0 0 10px rgba(0, 255, 157, 0.3); }
-    
-    /* Chrome, Safari, Edge, Opera */
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-    .switch-btn:hover { transform: rotate(180deg); color: var(--neon-green); }
+    :root { --neon: #00ff9d; --bg: #0d1117; --card: #161b22; }
+    body { background: var(--bg); color: #c9d1d9; font-family: 'Inter', sans-serif; }
+    .raydium-box { background: var(--card); border: 1px solid rgba(0, 255, 157, 0.1); border-radius: 20px; }
+    .input-group { background: #0d1117; border: 1px solid #30363d; border-radius: 16px; transition: 0.2s; }
+    .input-group:focus-within { border-color: var(--neon); box-shadow: 0 0 10px rgba(0,255,157,0.1); }
+    .neon-text { color: var(--neon); text-shadow: 0 0 10px rgba(0, 255, 157, 0.2); }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
   </style>
 </head>
-<body class="flex flex-col min-h-screen items-center justify-center px-4">
+<body class="flex flex-col min-h-screen items-center justify-center p-4">
 
-  <nav class="fixed top-0 w-full flex justify-between items-center p-6 bg-[#090909]/80 backdrop-blur-md z-50">
+  <nav class="fixed top-0 w-full flex justify-between items-center p-5 bg-[#0d1117]/90 backdrop-blur-md z-50 border-b border-white/5">
     <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-full border border-[#00ff9d] bg-black"></div>
-      <span class="font-black text-lg tracking-tighter neon-text">EXIT PRO</span>
+      <div class="w-8 h-8 rounded-full border-2 border-[#00ff9d] bg-black"></div>
+      <span class="font-black text-xl tracking-tighter neon-text uppercase">EXIT PRO</span>
     </div>
-    <button id="connect-btn" class="px-4 py-2 bg-[#00ff9d]/10 border border-[#00ff9d] text-[#00ff9d] rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:bg-[#00ff9d] hover:text-black">
-      Connect
+    <button id="connect-btn" class="px-5 py-2 border border-[#00ff9d] text-[#00ff9d] rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:bg-[#00ff9d] hover:text-black">
+      Connect Wallet
     </button>
   </nav>
 
-  <div class="raydium-card w-full max-w-[440px] p-6 shadow-2xl mt-12">
+  <div class="raydium-box w-full max-w-[450px] p-6 shadow-2xl">
     <div class="flex justify-between items-center mb-6">
-      <h2 class="font-bold text-xl">Swap</h2>
-      <div class="flex gap-2">
-        <span class="text-[10px] bg-black/40 px-2 py-1 rounded border border-white/10">0.5%</span>
-      </div>
-    </div>
-
-    <div class="token-box p-4 rounded-2xl mb-1">
-      <div class="flex justify-between text-xs text-white/40 mb-3 font-bold uppercase tracking-tighter">
-        <span>From</span>
-        <span id="from-bal">Bal: 0</span>
-      </div>
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex flex-col gap-1 flex-1">
-          <input id="from-amount" type="number" placeholder="0.0" class="bg-transparent text-2xl font-bold outline-none text-white w-full"/>
-          <span class="text-[10px] text-white/20">~$0.00</span>
-        </div>
-        <div class="flex flex-col items-end">
-          <input id="from-ca" type="text" placeholder="Paste CA" class="bg-black/40 text-[10px] p-1 rounded border border-white/5 outline-none mb-1 w-24 text-center text-[#00ff9d]"/>
-          <div class="flex items-center gap-2 bg-black/40 p-2 rounded-xl border border-white/10">
-             <span id="from-symbol" class="font-bold text-sm">SOL</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="flex justify-center -my-3 relative z-10">
-      <button id="switch-btn" class="switch-btn bg-[#131a1a] border border-white/10 p-2 rounded-lg transition-transform duration-300">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-        </svg>
+      <h2 class="font-black text-lg uppercase tracking-widest">Swap</h2>
+      <button onclick="location.reload()" class="text-white/40 hover:text-[#00ff9d] transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
       </button>
     </div>
 
-    <div class="token-box p-4 rounded-2xl mt-1 mb-6">
-      <div class="flex justify-between text-xs text-white/40 mb-3 font-bold uppercase tracking-tighter">
-        <span>To</span>
-        <span id="to-bal">Bal: 0</span>
+    <div class="input-group p-4 mb-1">
+      <div class="flex justify-between text-[10px] font-bold text-white/40 mb-2">
+        <span>YOU PAY</span>
+        <span id="from-bal">BAL: 0.00</span>
       </div>
-      <div class="flex items-center justify-between gap-4">
-        <div class="flex flex-col gap-1 flex-1">
-          <input id="to-amount" type="text" placeholder="0.0" readonly class="bg-transparent text-2xl font-bold outline-none text-white/40 w-full"/>
-          <span class="text-[10px] text-white/20">~$0.00</span>
-        </div>
-        <div class="flex flex-col items-end">
-          <input id="to-ca" type="text" placeholder="Paste CA" class="bg-black/40 text-[10px] p-1 rounded border border-white/5 outline-none mb-1 w-24 text-center text-[#00ff9d]"/>
-          <div class="flex items-center gap-2 bg-black/40 p-2 rounded-xl border border-white/10">
-             <span id="to-symbol" class="font-bold text-sm uppercase">USDC</span>
-          </div>
+      <div class="flex items-center gap-3">
+        <input id="from-amount" type="number" placeholder="0.0" class="bg-transparent text-2xl font-bold outline-none text-white w-full" />
+        <div class="text-right">
+          <input id="from-ca" type="text" placeholder="PASTE CA" class="bg-black/40 text-[9px] p-1 rounded border border-white/10 outline-none w-24 text-center text-[#00ff9d] mb-1" />
+          <div class="bg-white/5 px-3 py-1 rounded-lg font-bold text-sm" id="from-symbol">SOL</div>
         </div>
       </div>
     </div>
 
-    <button id="swap-btn" disabled class="w-full py-4 bg-[#00ff9d] text-black font-black rounded-2xl uppercase tracking-[0.2em] transition-all disabled:opacity-20 hover:shadow-[0_0_20px_rgba(0,255,157,0.4)]">
+    <div class="flex justify-center -my-4 relative z-10">
+      <button id="switch-btn" class="bg-[#161b22] border border-[#30363d] p-2 rounded-xl text-[#00ff9d] hover:scale-110 transition shadow-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+      </button>
+    </div>
+
+    <div class="input-group p-4 mt-1 mb-6">
+      <div class="flex justify-between text-[10px] font-bold text-white/40 mb-2">
+        <span>YOU RECEIVE</span>
+        <span id="to-bal">BAL: 0.00</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <input id="to-amount" type="text" placeholder="0.0" readonly class="bg-transparent text-2xl font-bold outline-none text-white/30 w-full" />
+        <div class="text-right">
+          <input id="to-ca" type="text" placeholder="PASTE CA" class="bg-black/40 text-[9px] p-1 rounded border border-white/10 outline-none w-24 text-center text-[#00ff9d] mb-1" />
+          <div class="bg-white/5 px-3 py-1 rounded-lg font-bold text-sm" id="to-symbol">USDC</div>
+        </div>
+      </div>
+    </div>
+
+    <button id="swap-btn" disabled class="w-full py-4 bg-[#00ff9d] text-black font-black rounded-xl uppercase tracking-widest disabled:opacity-20 transition-all active:scale-95">
       Connect Wallet
     </button>
     
-    <div id="status" class="mt-4 text-[9px] text-center font-bold text-white/30 uppercase tracking-widest"></div>
+    <div id="status" class="mt-4 text-[10px] text-center font-bold text-white/20 uppercase tracking-[2px]"></div>
   </div>
 
   <script>
@@ -111,102 +84,104 @@
     let provider = null;
     let quote = null;
 
-    // Token States
     let tokens = {
       from: { mint: 'So11111111111111111111111111111111111111112', symbol: 'SOL', decimals: 9 },
       to: { mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol: 'USDC', decimals: 6 }
     };
 
-    // 1. Fitur Bolak Balik (Switch)
-    document.getElementById('switch-btn').onclick = () => {
-      const temp = { ...tokens.from };
-      tokens.from = { ...tokens.to };
-      tokens.to = temp;
-      updateUI();
-      getQuote();
+    // ELITE CONNECT LOGIC (Anti-Fail)
+    const connect = async () => {
+      try {
+        const wallet = window.solflare || window.solana || window.backpack;
+        if (!wallet) return alert("Buka di browser Solflare/Phantom!");
+
+        const resp = await wallet.connect();
+        provider = wallet;
+        walletPK = (resp?.publicKey || wallet.publicKey).toString();
+
+        document.getElementById('connect-btn').textContent = `${walletPK.slice(0,4)}...${walletPK.slice(-4)}`;
+        document.getElementById('swap-btn').textContent = "SWAP NOW";
+        document.getElementById('swap-btn').disabled = false;
+        
+        updateBalances();
+      } catch (e) { console.error("User rejected"); }
     };
 
-    function updateUI() {
+    document.getElementById('connect-btn').onclick = connect;
+    document.getElementById('swap-btn').onclick = async () => {
+      if(!walletPK) return connect();
+      executeSwap();
+    };
+
+    // SWITCH LOGIC
+    document.getElementById('switch-btn').onclick = () => {
+      const temp = {...tokens.from};
+      tokens.from = {...tokens.to};
+      tokens.to = temp;
+      syncUI();
+    };
+
+    function syncUI() {
       document.getElementById('from-symbol').textContent = tokens.from.symbol;
       document.getElementById('to-symbol').textContent = tokens.to.symbol;
-      document.getElementById('from-ca').value = tokens.from.mint === 'So11111111111111111111111111111111111111112' ? '' : tokens.from.mint;
-      document.getElementById('to-ca').value = tokens.to.mint === 'So11111111111111111111111111111111111111112' ? '' : tokens.to.mint;
-      refreshBalances();
+      document.getElementById('from-ca').value = tokens.from.mint.startsWith('So11') ? '' : tokens.from.mint;
+      document.getElementById('to-ca').value = tokens.to.mint.startsWith('So11') ? '' : tokens.to.mint;
+      updateBalances();
+      getQuote();
     }
 
-    // 2. Fitur Paste Contract Address (CA)
-    async function handleCAPaste(type, ca) {
+    // PASTE CA AUTO-DETECTION
+    async function updateTokenByCA(type, ca) {
       if (ca.length < 32) return;
+      document.getElementById('status').textContent = "FETCHING TOKEN...";
       try {
-        const res = await fetch(`https://token-list_api.solana.com/v1/mints/${ca}`); // Example or check Jup
-        // For simplicity, we use Jupiter price API to validate
-        const meta = await fetch(`https://api.jup.ag/price/v2?ids=${ca}`);
-        const data = await meta.json();
-        
+        // We use Jupiter's Price V2 to validate CA
+        const res = await fetch(`https://api.jup.ag/price/v2?ids=${ca}`);
+        const data = await res.json();
         if (data.data[ca]) {
           tokens[type].mint = ca;
-          tokens[type].symbol = 'TOKEN'; // You can fetch real symbol via Metaplex if needed
-          updateUI();
-          getQuote();
+          tokens[type].symbol = "TOKEN"; // In production, fetch symbol via Metaplex
+          syncUI();
         }
-      } catch (e) { console.log("CA not found"); }
+      } catch (e) { document.getElementById('status').textContent = "CA NOT FOUND"; }
     }
 
-    document.getElementById('from-ca').oninput = (e) => handleCAPaste('from', e.target.value);
-    document.getElementById('to-ca').oninput = (e) => handleCAPaste('to', e.target.value);
+    document.getElementById('from-ca').oninput = (e) => updateTokenByCA('from', e.target.value);
+    document.getElementById('to-ca').oninput = (e) => updateTokenByCA('to', e.target.value);
 
-    // 3. Connect Wallet
-    document.getElementById('connect-btn').onclick = async () => {
-      if (walletPK) { logout(); return; }
-      provider = window.solana || window.solflare;
-      if (!provider) return alert("Install Wallet");
-      const resp = await provider.connect();
-      walletPK = resp.publicKey.toString();
-      
-      document.getElementById('connect-btn').textContent = `${walletPK.slice(0,4)}...${walletPK.slice(-4)}`;
-      document.getElementById('swap-btn').textContent = "Swap";
-      document.getElementById('swap-btn').disabled = false;
-      refreshBalances();
-    };
-
-    function logout() {
-      walletPK = null;
-      document.getElementById('connect-btn').textContent = "Connect";
-      document.getElementById('swap-btn').textContent = "Connect Wallet";
-      document.getElementById('swap-btn').disabled = true;
-    }
-
-    async function refreshBalances() {
+    // REAL BLOCKCHAIN BALANCE
+    async function updateBalances() {
       if (!walletPK) return;
       const conn = new solanaWeb3.Connection(RPC);
       const pk = new solanaWeb3.PublicKey(walletPK);
       
-      // Native SOL check
-      if (tokens.from.mint.startsWith('So11')) {
-        const bal = await conn.getBalance(pk);
-        document.getElementById('from-bal').textContent = `Bal: ${(bal/1e9).toFixed(3)}`;
-      }
+      try {
+        const solBal = await conn.getBalance(pk);
+        if (tokens.from.mint.startsWith('So11')) document.getElementById('from-bal').textContent = `BAL: ${(solBal/1e9).toFixed(3)}`;
+        if (tokens.to.mint.startsWith('So11')) document.getElementById('to-bal').textContent = `BAL: ${(solBal/1e9).toFixed(3)}`;
+      } catch (e) {}
     }
 
+    // JUPITER QUOTE
     async function getQuote() {
       const amt = document.getElementById('from-amount').value;
       if (!amt || amt <= 0) return;
       
-      document.getElementById('status').textContent = "GETTING QUOTE...";
       try {
-        const res = await fetch(`${JUP_API}/quote?inputMint=${tokens.from.mint}&outputMint=${tokens.to.mint}&amount=${Math.floor(amt * Math.pow(10, tokens.from.decimals))}&slippageBps=50`);
+        const inputAmt = Math.floor(amt * Math.pow(10, tokens.from.decimals));
+        const url = `${JUP_API}/quote?inputMint=${tokens.from.mint}&outputMint=${tokens.to.mint}&amount=${inputAmt}&slippageBps=50`;
+        const res = await fetch(url);
         quote = await res.json();
         document.getElementById('to-amount').value = (quote.outAmount / Math.pow(10, tokens.to.decimals)).toFixed(4);
-        document.getElementById('status').textContent = "READY";
-      } catch (e) { document.getElementById('status').textContent = "QUOTE ERROR"; }
+      } catch (e) {}
     }
 
     document.getElementById('from-amount').oninput = getQuote;
 
-    // 4. Execution
-    document.getElementById('swap-btn').onclick = async () => {
-      if (!walletPK || !quote) return;
-      document.getElementById('status').textContent = "SIGNING...";
+    // EXECUTE
+    async function executeSwap() {
+      if (!quote || !walletPK) return;
+      document.getElementById('status').textContent = "WAITING FOR APPROVAL...";
       try {
         const res = await fetch(`${JUP_API}/swap`, {
           method: 'POST',
@@ -215,16 +190,18 @@
         });
         const { swapTransaction } = await res.json();
         const txBuf = Uint8Array.from(atob(swapTransaction), c => c.charCodeAt(0));
-        const tx = solanaWeb3.VersionedTransaction.deserialize(txBuf);
-        const signed = await provider.signTransaction(tx);
-        const conn = new solanaWeb3.Connection(RPC);
+        const transaction = solanaWeb3.VersionedTransaction.deserialize(txBuf);
+        
+        const signed = await provider.signTransaction(transaction);
+        const conn = new solanaWeb3.Connection(RPC, 'confirmed');
         const txid = await conn.sendRawTransaction(signed.serialize());
-        document.getElementById('status').innerHTML = `<a href="https://solscan.io/tx/${txid}" target="_blank" class="underline">SUCCESS! VIEW TX</a>`;
-      } catch (e) { document.getElementById('status').textContent = "FAILED"; }
-    };
+        document.getElementById('status').innerHTML = `<a href="https://solscan.io/tx/${txid}" target="_blank" class="text-[#00ff9d] underline">SUCCESS! VIEW TX</a>`;
+      } catch (e) { document.getElementById('status').textContent = "TRANSACTION FAILED"; }
+    }
   </script>
 </body>
 </html>
+
 
 
  
