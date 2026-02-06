@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>EXIT PRO Swap</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -10,171 +10,243 @@
 
 <style>
 :root{
-  --neon:#00ff9d;
-  --bg:#090b0f;
-  --card:#131a1a;
+ --neon:#00ff9d;
+ --bg:#090b0f;
+ --card:#11181a;
 }
 body{
-  background:var(--bg);
-  color:#eafff6;
-  font-family:Inter,system-ui;
+ background:var(--bg);
+ color:#eafff6;
+ font-family:Inter,system-ui;
 }
 .glass{
-  background:var(--card);
-  border:1px solid rgba(0,255,157,.15);
-  border-radius:24px;
+ background:var(--card);
+ border:1px solid rgba(0,255,157,.15);
+ border-radius:20px;
 }
 .neon{color:var(--neon)}
 </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="min-h-screen flex justify-center items-center p-4">
 
-<div class="glass w-full max-w-md p-6">
+<div class="glass w-full max-w-md p-5">
 
 <!-- HEADER -->
-<div class="flex justify-between items-center mb-6">
-  <div class="flex items-center gap-3">
-    <img src="/assets/logo.png"
-      onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'"
-      class="w-9 h-9 rounded-full border border-[var(--neon)]"/>
-    <span class="font-black italic neon text-lg">EXIT PRO</span>
-  </div>
-  <button id="connectBtn"
-    class="px-4 py-2 rounded-xl border border-[var(--neon)] neon text-xs font-bold">
-    CONNECT
-  </button>
+<div class="flex justify-between items-center mb-5">
+ <div class="flex items-center gap-2">
+  <img class="w-8 h-8 rounded-full border border-[var(--neon)]"
+   src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png">
+  <span class="font-black italic neon">EXIT PRO</span>
+ </div>
+ <button id="connectBtn"
+  class="px-4 py-2 text-xs rounded-xl border border-[var(--neon)] neon font-bold">
+  CONNECT
+ </button>
 </div>
 
 <!-- FROM -->
 <div class="glass p-4 mb-2">
-  <div class="flex justify-between text-xs opacity-60 mb-2">
-    <span>YOU SELL</span>
-    <span id="fromBal">Bal: 0</span>
-  </div>
-  <div class="flex items-center gap-3">
-    <input id="fromAmt" type="number" placeholder="0.0"
-      class="bg-transparent text-2xl font-bold outline-none w-full"/>
-    <button onclick="openToken('from')" class="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-xl">
-      <img id="fromLogo" class="w-6 h-6 rounded-full"/>
-      <span id="fromSym" class="font-bold">SOL</span>
-    </button>
-  </div>
+ <div class="flex justify-between text-xs opacity-60 mb-1">
+  <span>YOU SELL</span>
+  <span id="fromBal">Bal: 0</span>
+ </div>
+ <div class="flex items-center gap-3">
+  <input id="fromAmt" type="number" placeholder="0.0"
+   class="bg-transparent text-2xl font-bold outline-none w-full">
+  <button onclick="openToken('from')" class="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-xl">
+   <img id="fromLogo" class="w-6 h-6 rounded-full">
+   <span id="fromSym" class="font-bold"></span>
+  </button>
+ </div>
 </div>
 
-<!-- SWITCH -->
-<div class="flex justify-center my-3">
-  <button onclick="swapSides()" class="border border-[var(--neon)] rounded-full p-2 neon">⇅</button>
+<div class="flex justify-center my-2">
+ <button onclick="swapSides()" class="border border-[var(--neon)] rounded-full px-3 py-1 neon">⇅</button>
 </div>
 
 <!-- TO -->
-<div class="glass p-4 mb-4">
-  <div class="flex justify-between text-xs opacity-60 mb-2">
-    <span>YOU BUY</span>
-    <span id="toBal">Bal: 0</span>
-  </div>
-  <div class="flex items-center gap-3">
-    <input id="toAmt" readonly placeholder="0.0"
-      class="bg-transparent text-2xl font-bold outline-none w-full opacity-40"/>
-    <button onclick="openToken('to')" class="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-xl">
-      <img id="toLogo" class="w-6 h-6 rounded-full"/>
-      <span id="toSym" class="font-bold">USDC</span>
-    </button>
-  </div>
+<div class="glass p-4 mb-3">
+ <div class="flex justify-between text-xs opacity-60 mb-1">
+  <span>YOU BUY</span>
+  <span id="toBal">Bal: 0</span>
+ </div>
+ <div class="flex items-center gap-3">
+  <input id="toAmt" readonly placeholder="0.0"
+   class="bg-transparent text-2xl font-bold outline-none w-full opacity-40">
+  <button onclick="openToken('to')" class="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-xl">
+   <img id="toLogo" class="w-6 h-6 rounded-full">
+   <span id="toSym" class="font-bold"></span>
+  </button>
+ </div>
 </div>
 
-<!-- SLIPPAGE -->
-<div class="flex justify-between items-center text-xs mb-4">
-  <span>Slippage</span>
-  <input id="slippage" value="0.5" class="w-16 text-right bg-black/40 px-2 py-1 rounded"/>
+<!-- INFO -->
+<div class="text-xs opacity-70 space-y-1 mb-3">
+ <div class="flex justify-between"><span>Price Impact</span><span id="impact">-</span></div>
+ <div class="flex justify-between"><span>Min Received</span><span id="minOut">-</span></div>
+</div>
+
+<div class="flex justify-between items-center text-xs mb-3">
+ <span>Slippage</span>
+ <input id="slippage" value="0.5"
+  class="w-16 bg-black/40 px-2 py-1 rounded outline-none text-right">
 </div>
 
 <button id="swapBtn"
- class="w-full py-4 rounded-xl bg-[var(--neon)] text-black font-black tracking-widest">
+ class="w-full py-3 rounded-xl bg-[var(--neon)] text-black font-black">
  CONNECT WALLET
 </button>
 
-<div id="status" class="text-center text-xs mt-3 opacity-60"></div>
+<button onclick="toggleRoute()" class="text-xs neon mt-3">View Route</button>
+<div id="routeBox" class="hidden text-xs opacity-60 mt-1"></div>
+
+<div id="status" class="text-center text-xs mt-3 opacity-70"></div>
 
 </div>
 
 <!-- TOKEN MODAL -->
 <div id="modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4">
-<div class="glass w-full max-w-sm p-4">
-<input id="search" placeholder="Paste CA / Search"
- class="w-full mb-3 bg-black/40 p-3 rounded outline-none"/>
-<div id="tokenList" class="max-h-64 overflow-auto space-y-2"></div>
-</div>
+ <div class="glass w-full max-w-sm p-4">
+  <input id="search" placeholder="Paste CA / search symbol"
+   class="w-full bg-black/40 p-3 rounded outline-none mb-3">
+  <div id="tokenList" class="max-h-64 overflow-auto space-y-2"></div>
+ </div>
 </div>
 
 <script>
 const RPC="https://api.mainnet-beta.solana.com";
 const JUP="https://quote-api.jup.ag/v6";
-const conn=new solanaWeb3.Connection(RPC);
+const TOKENS_API="https://token.jup.ag/all";
 
-let wallet=null, pubkey=null, side="from", quote=null;
+const conn=new solanaWeb3.Connection(RPC);
+let wallet=null,pubkey=null,side="from",quote=null,tokenList=[];
 
 let tokens={
- from:{mint:"So11111111111111111111111111111111111111112",sym:"SOL",dec:9,logo:"https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png"},
- to:{mint:"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",sym:"USDC",dec:6,logo:"https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png"}
+ from:{mint:"So11111111111111111111111111111111111111112",symbol:"SOL",decimals:9,logoURI:"https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png"},
+ to:{mint:"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",symbol:"USDC",decimals:6,logoURI:"https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png"}
 };
 
 function render(){
- fromLogo.src=tokens.from.logo;
- toLogo.src=tokens.to.logo;
- fromSym.textContent=tokens.from.sym;
- toSym.textContent=tokens.to.sym;
+ fromLogo.src=tokens.from.logoURI;
+ toLogo.src=tokens.to.logoURI;
+ fromSym.textContent=tokens.from.symbol;
+ toSym.textContent=tokens.to.symbol;
 }
 render();
 
+fetch(TOKENS_API).then(r=>r.json()).then(j=>tokenList=j);
+
+/* CONNECT MULTI WALLET */
 connectBtn.onclick=async()=>{
- if(pubkey){
-  pubkey=null;wallet=null;
-  connectBtn.textContent="CONNECT";
-  swapBtn.textContent="CONNECT WALLET";
-  return;
- }
- if(!window.solana?.isPhantom) return alert("Open in Phantom");
- wallet=window.solana;
- const r=await wallet.connect();
+ const w=window.solana||window.solflare||window.backpack;
+ if(!w) return alert("Install Solana wallet");
+ wallet=w;
+ const r=await w.connect();
  pubkey=r.publicKey.toString();
  connectBtn.textContent=pubkey.slice(0,4)+"..."+pubkey.slice(-4);
  swapBtn.textContent="SWAP";
+ refreshBalances();
 };
 
+/* BALANCE */
+async function getBal(mint){
+ if(!pubkey) return 0;
+ if(mint===tokens.from.mint && mint.startsWith("So1")){
+  return (await conn.getBalance(new solanaWeb3.PublicKey(pubkey)))/1e9;
+ }
+ const acc=await conn.getParsedTokenAccountsByOwner(
+  new solanaWeb3.PublicKey(pubkey),
+  {mint:new solanaWeb3.PublicKey(mint)}
+ );
+ return acc.value[0]?.account.data.parsed.info.tokenAmount.uiAmount||0;
+}
+
+async function refreshBalances(){
+ fromBal.textContent="Bal: "+await getBal(tokens.from.mint);
+ toBal.textContent="Bal: "+await getBal(tokens.to.mint);
+}
+
+/* QUOTE */
 fromAmt.oninput=async()=>{
  if(!fromAmt.value) return;
- const amt=Math.floor(fromAmt.value*10**tokens.from.dec);
+ const amt=Math.floor(fromAmt.value*10**tokens.from.decimals);
  const slip=Math.floor(slippage.value*100);
  const r=await fetch(`${JUP}/quote?inputMint=${tokens.from.mint}&outputMint=${tokens.to.mint}&amount=${amt}&slippageBps=${slip}`);
  const j=await r.json();
  quote=j.data?.[0];
- if(quote) toAmt.value=(quote.outAmount/10**tokens.to.dec).toFixed(4);
+ if(!quote) return;
+ toAmt.value=(quote.outAmount/10**tokens.to.decimals).toFixed(4);
+ impact.textContent=(quote.priceImpactPct*100).toFixed(2)+"%";
+ minOut.textContent=(quote.otherAmountThreshold/10**tokens.to.decimals).toFixed(4);
+ routeBox.innerHTML=quote.routePlan.map(r=>`${r.swapInfo.label} (${r.percent}%)`).join("<br>");
 };
 
+/* SWAP */
 swapBtn.onclick=async()=>{
  if(!quote||!wallet) return;
  status.textContent="Signing...";
- const r=await fetch(`${JUP}/swap`,{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({quoteResponse:quote,userPublicKey:pubkey,wrapAndUnwrapSol:true})
- });
- const {swapTransaction}=await r.json();
- const tx=solanaWeb3.VersionedTransaction.deserialize(Uint8Array.from(atob(swapTransaction),c=>c.charCodeAt(0)));
- const signed=await wallet.signTransaction(tx);
- const sig=await conn.sendRawTransaction(signed.serialize());
- status.innerHTML=`<a target="_blank" href="https://solscan.io/tx/${sig}" class="neon">SUCCESS</a>`;
+ try{
+  const r=await fetch(`${JUP}/swap`,{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({quoteResponse:quote,userPublicKey:pubkey,wrapAndUnwrapSol:true})
+  });
+  const {swapTransaction}=await r.json();
+  const tx=solanaWeb3.VersionedTransaction.deserialize(
+   Uint8Array.from(atob(swapTransaction),c=>c.charCodeAt(0))
+  );
+  const signed=await wallet.signTransaction(tx);
+  const sig=await conn.sendRawTransaction(signed.serialize());
+  status.innerHTML=`<a target="_blank" class="neon" href="https://solscan.io/tx/${sig}">SUCCESS</a>`;
+  refreshBalances();
+ }catch(e){
+  status.textContent="Swap failed";
+ }
 };
+
+/* TOKEN MODAL */
+function openToken(s){
+ side=s;
+ modal.classList.remove("hidden");
+ search.value="";
+ renderList(tokenList.slice(0,40));
+}
+
+search.oninput=()=>{
+ const q=search.value.toLowerCase();
+ renderList(tokenList.filter(t=>
+  t.address.toLowerCase()===q||t.symbol?.toLowerCase().includes(q)
+ ).slice(0,40));
+};
+
+function renderList(arr){
+ tokenList.innerHTML="";
+ arr.forEach(t=>{
+  const d=document.createElement("div");
+  d.className="flex items-center gap-3 p-2 rounded hover:bg-black/40 cursor-pointer";
+  d.innerHTML=`<img src="${t.logoURI||''}" class="w-6 h-6 rounded-full">
+  <div><div class="font-bold">${t.symbol||"UNKNOWN"}</div>
+  <div class="text-xs opacity-50">${t.address.slice(0,6)}...</div></div>`;
+  d.onclick=()=>{
+   tokens[side]=t;
+   modal.classList.add("hidden");
+   fromAmt.value="";toAmt.value="";
+   render();refreshBalances();
+  };
+  tokenList.appendChild(d);
+ });
+}
 
 function swapSides(){
  [tokens.from,tokens.to]=[tokens.to,tokens.from];
  fromAmt.value="";toAmt.value="";
- render();
+ render();refreshBalances();
 }
+function toggleRoute(){routeBox.classList.toggle("hidden");}
 </script>
 </body>
-</html>
+  </html>
 
 
 
