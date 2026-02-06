@@ -10,20 +10,35 @@
   <style>
     body { 
       background: linear-gradient(135deg, #0a0015, #1a0033, #000); 
-      color: #e0e0ff; margin:0; padding:0; 
+      color: #e0e0ff; 
+      margin:0; padding:0; 
       min-height:100vh; 
       font-family: 'Segoe UI', system-ui, sans-serif;
       overflow-x: hidden;
     }
-    .glass-card { background: rgba(30, 20, 60, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(100, 80, 255, 0.2); border-radius: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .glass-card {
+      background: rgba(30, 20, 60, 0.65);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(100, 80, 255, 0.25);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
     .neon-green { color: #00ff9d; text-shadow: 0 0 10px #00ff9d; }
-    .swap-btn { background: linear-gradient(90deg, #00ff9d, #00c9ff); box-shadow: 0 0 20px rgba(0,255,157,0.5); }
+    .swap-btn {
+      background: linear-gradient(90deg, #00ff9d, #00c9ff);
+      box-shadow: 0 0 20px rgba(0,255,157,0.5);
+    }
     .swap-btn:hover { box-shadow: 0 0 30px rgba(0,255,157,0.7); }
-    .token-select { background: rgba(40,30,80,0.7); border: 1px solid rgba(100,80,255,0.3); }
+    .token-select {
+      background: rgba(40,30,80,0.7);
+      border: 1px solid rgba(100,80,255,0.3);
+    }
+    .disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
+  <!-- Header -->
   <nav class="fixed top-0 w-full glass-card z-50 px-4 py-4 flex justify-between items-center border-b border-purple-900/30">
     <div class="flex items-center gap-3">
       <img src="assets/logo.png" alt="EXIT PRO" class="h-10 w-10 rounded-full object-cover border-2 border-green-500/50" onerror="this.src='https://via.placeholder.com/40/00ff9d/000?text=EXIT';" />
@@ -34,10 +49,12 @@
     </button>
   </nav>
 
+  <!-- Main Swap Card -->
   <main class="flex-1 flex items-center justify-center pt-24 pb-12 px-4">
     <div class="glass-card p-8 w-full max-w-md">
       <h1 class="text-3xl font-bold text-center neon-green mb-8">Swap</h1>
 
+      <!-- From -->
       <div class="mb-6">
         <div class="flex justify-between text-sm text-gray-400 mb-2">
           <span>From</span>
@@ -52,8 +69,10 @@
         </div>
       </div>
 
+      <!-- Arrow -->
       <div class="text-center my-4 text-3xl neon-green">↓</div>
 
+      <!-- To -->
       <div class="mb-8">
         <div class="flex justify-between text-sm text-gray-400 mb-2">
           <span>To</span>
@@ -68,6 +87,7 @@
         </div>
       </div>
 
+      <!-- Info -->
       <div class="text-sm text-gray-400 mb-6 space-y-2">
         <div class="flex justify-between">
           <span>Price Impact</span>
@@ -83,6 +103,7 @@
         </div>
       </div>
 
+      <!-- Button -->
       <button id="swap-btn" disabled class="w-full swap-btn text-black font-bold text-lg py-4 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed">
         Swap
       </button>
@@ -101,36 +122,45 @@
     let quoteData = null;
     let debounceTimer = null;
 
-    // Multi-Wallet Connect
+    // Multi-Wallet Connect dengan Error Handling Aman
     document.getElementById('connect-btn').onclick = async () => {
       let wallet = null;
 
-      // Prioritas: Backpack > Solflare > Phantom
+      // Prioritas wallet
       if (window.backpack) wallet = window.backpack;
       else if (window.solflare) wallet = window.solflare;
       else if (window.solana && window.solana.isPhantom) wallet = window.solana;
 
-      if (wallet) {
-        try {
-          const resp = await wallet.connect();
-          walletPublicKey = resp.publicKey.toString();
-          currentWallet = wallet; // Simpan untuk sign nanti
-          const shortKey = `\( {walletPublicKey.slice(0,4)}... \){walletPublicKey.slice(-4)}`;
-          document.getElementById('connect-btn').textContent = `Connected (${shortKey})`;
-          document.getElementById('swap-btn').disabled = false;
-          document.getElementById('status').textContent = 'Wallet connected!';
+      if (!wallet) {
+        alert('Tidak ada wallet terdeteksi.\nInstall salah satu: Phantom, Backpack, Solflare, atau Glow di browser kamu.');
+        return;
+      }
 
-          // Fetch SOL balance
-          const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com');
-          const pubkey = new solanaWeb3.PublicKey(walletPublicKey);
-          const balanceLamports = await connection.getBalance(pubkey);
-          const balanceSOL = (balanceLamports / 1e9).toFixed(4);
-          document.getElementById('from-balance').textContent = `Balance: ${balanceSOL} SOL`;
-        } catch (err) {
-          alert('Connect failed: ' + (err.message || 'Unknown error'));
+      try {
+        const resp = await wallet.connect();
+
+        // Cek aman apakah publicKey ada
+        if (!resp || !resp.publicKey) {
+          throw new Error('Wallet tidak mengembalikan public key. Coba connect ulang atau ganti wallet.');
         }
-      } else {
-        alert('Install wallet: Phantom, Backpack, Solflare, atau Glow');
+
+        walletPublicKey = resp.publicKey.toString();
+        currentWallet = wallet;
+
+        const shortKey = `\( {walletPublicKey.slice(0,4)}... \){walletPublicKey.slice(-4)}`;
+        document.getElementById('connect-btn').textContent = `Connected (${shortKey})`;
+        document.getElementById('swap-btn').disabled = false;
+        document.getElementById('status').textContent = 'Wallet connected!';
+
+        // Fetch SOL balance (basic)
+        const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com');
+        const pubkey = new solanaWeb3.PublicKey(walletPublicKey);
+        const balanceLamports = await connection.getBalance(pubkey);
+        const balanceSOL = (balanceLamports / 1e9).toFixed(4);
+        document.getElementById('from-balance').textContent = `Balance: ${balanceSOL} SOL`;
+      } catch (err) {
+        console.error('Connect error:', err);
+        alert('Connect failed: ' + (err.message || 'Unknown error. Coba reload halaman atau ganti wallet.'));
       }
     };
 
@@ -170,7 +200,10 @@
 
     // Execute Swap
     document.getElementById('swap-btn').onclick = async () => {
-      if (!walletPublicKey || !quoteData || !currentWallet) return alert('Connect wallet or enter amount first');
+      if (!walletPublicKey || !quoteData || !currentWallet) {
+        alert('Connect wallet dan masukkan jumlah terlebih dahulu!');
+        return;
+      }
 
       document.getElementById('status').textContent = 'Preparing transaction...';
 
@@ -188,6 +221,8 @@
           })
         });
 
+        if (!res.ok) throw new Error('API swap gagal: ' + res.statusText);
+
         const { swapTransaction } = await res.json();
 
         const txBuf = Uint8Array.from(atob(swapTransaction), c => c.charCodeAt(0));
@@ -198,11 +233,12 @@
         const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com', 'confirmed');
         const txid = await connection.sendRawTransaction(signedTx.serialize(), { skipPreflight: true });
 
-        document.getElementById('status').innerHTML = `Success! <a href="https://solscan.io/tx/${txid}" target="_blank" class="neon-green underline">View TX on Solscan</a>`;
+        document.getElementById('status').innerHTML = `Success! <a href="https://solscan.io/tx/${txid}" target="_blank" class="neon-green underline">Lihat TX di Solscan</a>`;
       } catch (err) {
-        document.getElementById('status').textContent = 'Swap failed: ' + err.message;
+        console.error(err);
+        document.getElementById('status').textContent = 'Swap failed: ' + (err.message || 'Unknown error');
       }
     };
   </script>
 </body>
-</html> 
+            </html> 
