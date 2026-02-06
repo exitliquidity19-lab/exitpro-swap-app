@@ -1,266 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>EXIT PRO Swap</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
 
 <style>
-:root {
-  --bg: #0b0f1a;
-  --card: #141a2a;
-  --neon: #00ff9d;
+:root{
+  --neon:#00ff9d;
+  --bg:#090b0f;
+  --card:#131a1a;
 }
-body {
-  background: radial-gradient(circle at top, #0f1628, #05070d);
-  font-family: Inter, system-ui;
-  color: #e5fef5;
+body{
+  background:var(--bg);
+  color:#eafff6;
+  font-family:Inter,system-ui;
 }
-.card {
-  background: linear-gradient(180deg, #151c30, #0d1322);
-  border-radius: 20px;
-  border: 1px solid rgba(0,255,157,.15);
-  box-shadow: 0 0 40px rgba(0,255,157,.08);
+.glass{
+  background:var(--card);
+  border:1px solid rgba(0,255,157,.15);
+  border-radius:24px;
 }
-.neon {
-  color: var(--neon);
-}
-.btn {
-  background: linear-gradient(90deg, #00ff9d, #00c98a);
-}
-.input-box {
-  background: rgba(255,255,255,.04);
-  border-radius: 16px;
-}
+.neon{color:var(--neon)}
 </style>
 </head>
 
-<body class="min-h-screen flex items-center justify-center px-4">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-<div class="card w-full max-w-md p-6">
+<div class="glass w-full max-w-md p-6">
 
 <!-- HEADER -->
-<div class="flex justify-between items-center mb-5">
-  <div class="flex items-center gap-2">
-    <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png"
-      class="w-7 h-7 rounded-full">
+<div class="flex justify-between items-center mb-6">
+  <div class="flex items-center gap-3">
+    <img src="/assets/logo.png"
+      onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'"
+      class="w-9 h-9 rounded-full border border-[var(--neon)]"/>
     <span class="font-black italic neon text-lg">EXIT PRO</span>
   </div>
-
-  <button id="walletBtn"
-    class="px-4 py-1.5 rounded-full border border-[#00ff9d] text-xs">
+  <button id="connectBtn"
+    class="px-4 py-2 rounded-xl border border-[var(--neon)] neon text-xs font-bold">
     CONNECT
   </button>
 </div>
 
 <!-- FROM -->
-<div class="input-box p-4 mb-2">
-  <div class="flex justify-between text-xs opacity-50 mb-1">
-    <span>From</span>
+<div class="glass p-4 mb-2">
+  <div class="flex justify-between text-xs opacity-60 mb-2">
+    <span>YOU SELL</span>
     <span id="fromBal">Bal: 0</span>
   </div>
-
-  <div class="flex items-center gap-2">
-    <input id="fromAmt" placeholder="0.0"
-      class="bg-transparent text-3xl outline-none flex-1">
-
-    <button onclick="openToken('from')"
-      class="flex items-center gap-1 bg-black/30 px-3 py-2 rounded-xl">
-      <span id="fromSym">SOL</span>
-      ▼
+  <div class="flex items-center gap-3">
+    <input id="fromAmt" type="number" placeholder="0.0"
+      class="bg-transparent text-2xl font-bold outline-none w-full"/>
+    <button onclick="openToken('from')" class="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-xl">
+      <img id="fromLogo" class="w-6 h-6 rounded-full"/>
+      <span id="fromSym" class="font-bold">SOL</span>
     </button>
   </div>
 </div>
 
 <!-- SWITCH -->
-<div class="flex justify-center my-2">
-  <button id="switchBtn"
-    class="w-10 h-10 rounded-full border border-[#00ff9d] text-lg">
-    ↓
-  </button>
+<div class="flex justify-center my-3">
+  <button onclick="swapSides()" class="border border-[var(--neon)] rounded-full p-2 neon">⇅</button>
 </div>
 
 <!-- TO -->
-<div class="input-box p-4 mb-3">
-  <div class="flex justify-between text-xs opacity-50 mb-1">
-    <span>To</span>
+<div class="glass p-4 mb-4">
+  <div class="flex justify-between text-xs opacity-60 mb-2">
+    <span>YOU BUY</span>
+    <span id="toBal">Bal: 0</span>
   </div>
-
-  <div class="flex items-center gap-2">
+  <div class="flex items-center gap-3">
     <input id="toAmt" readonly placeholder="0.0"
-      class="bg-transparent text-3xl outline-none flex-1 opacity-40">
-
-    <button onclick="openToken('to')"
-      class="flex items-center gap-1 bg-black/30 px-3 py-2 rounded-xl">
-      <span id="toSym">USDC</span>
-      ▼
+      class="bg-transparent text-2xl font-bold outline-none w-full opacity-40"/>
+    <button onclick="openToken('to')" class="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-xl">
+      <img id="toLogo" class="w-6 h-6 rounded-full"/>
+      <span id="toSym" class="font-bold">USDC</span>
     </button>
   </div>
 </div>
 
 <!-- SLIPPAGE -->
-<div class="flex justify-between items-center text-xs mb-3">
+<div class="flex justify-between items-center text-xs mb-4">
   <span>Slippage</span>
-  <div class="flex items-center gap-1">
-    <input id="slippage" value="0.5"
-      class="w-12 bg-black/40 text-center rounded"> %
-  </div>
+  <input id="slippage" value="0.5" class="w-16 text-right bg-black/40 px-2 py-1 rounded"/>
 </div>
 
-<!-- INFO -->
-<div id="info" class="text-xs text-white/40 min-h-[28px]"></div>
-
-<!-- ACTION -->
 <button id="swapBtn"
-  class="btn w-full py-4 rounded-xl font-black text-black mt-4 opacity-40"
-  disabled>
-  CONNECT WALLET
+ class="w-full py-4 rounded-xl bg-[var(--neon)] text-black font-black tracking-widest">
+ CONNECT WALLET
 </button>
+
+<div id="status" class="text-center text-xs mt-3 opacity-60"></div>
 
 </div>
 
 <!-- TOKEN MODAL -->
-<div id="modal"
-  class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50">
-  <div class="card w-full max-w-sm p-4">
-    <input id="search"
-      placeholder="Paste CA or search symbol"
-      class="w-full bg-black/40 rounded-xl p-3 mb-3 outline-none">
-
-    <div id="list" class="max-h-64 overflow-y-auto space-y-2"></div>
-  </div>
+<div id="modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4">
+<div class="glass w-full max-w-sm p-4">
+<input id="search" placeholder="Paste CA / Search"
+ class="w-full mb-3 bg-black/40 p-3 rounded outline-none"/>
+<div id="tokenList" class="max-h-64 overflow-auto space-y-2"></div>
+</div>
 </div>
 
 <script>
-/* ===== CONFIG ===== */
-const RPC = 'https://api.mainnet-beta.solana.com';
-const JUP = 'https://quote-api.jup.ag/v6';
+const RPC="https://api.mainnet-beta.solana.com";
+const JUP="https://quote-api.jup.ag/v6";
+const conn=new solanaWeb3.Connection(RPC);
 
-/* ===== STATE ===== */
-let wallet=null, pk=null, quote=null, timer=null, activeSide='from';
+let wallet=null, pubkey=null, side="from", quote=null;
+
 let tokens={
- from:{ mint:'So11111111111111111111111111111111111111112', sym:'SOL', dec:9 },
- to:{ mint:'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', sym:'USDC', dec:6 }
+ from:{mint:"So11111111111111111111111111111111111111112",sym:"SOL",dec:9,logo:"https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png"},
+ to:{mint:"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",sym:"USDC",dec:6,logo:"https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png"}
 };
 
-/* ===== WALLET ===== */
-async function getProvider(){
- if(window.solana?.isPhantom) return window.solana;
- if(window.solflare?.isSolflare) return window.solflare;
- return null;
+function render(){
+ fromLogo.src=tokens.from.logo;
+ toLogo.src=tokens.to.logo;
+ fromSym.textContent=tokens.from.sym;
+ toSym.textContent=tokens.to.sym;
 }
+render();
 
-walletBtn.onclick=async()=>{
- if(pk){
-  pk=null; wallet=null;
-  walletBtn.innerText='CONNECT';
-  swapBtn.innerText='CONNECT WALLET';
-  swapBtn.disabled=true;
-  swapBtn.classList.add('opacity-40');
+connectBtn.onclick=async()=>{
+ if(pubkey){
+  pubkey=null;wallet=null;
+  connectBtn.textContent="CONNECT";
+  swapBtn.textContent="CONNECT WALLET";
   return;
  }
- wallet=await getProvider();
- if(!wallet) return alert('Open in Phantom or Solflare');
- const res=await wallet.connect();
- pk=res.publicKey.toString();
- walletBtn.innerText=pk.slice(0,4)+'...'+pk.slice(-4);
- swapBtn.innerText='SWAP';
- swapBtn.disabled=false;
- swapBtn.classList.remove('opacity-40');
+ if(!window.solana?.isPhantom) return alert("Open in Phantom");
+ wallet=window.solana;
+ const r=await wallet.connect();
+ pubkey=r.publicKey.toString();
+ connectBtn.textContent=pubkey.slice(0,4)+"..."+pubkey.slice(-4);
+ swapBtn.textContent="SWAP";
 };
 
-/* ===== SWITCH ===== */
-switchBtn.onclick=()=>{
- [tokens.from,tokens.to]=[tokens.to,tokens.from];
- fromSym.innerText=tokens.from.sym;
- toSym.innerText=tokens.to.sym;
- fromAmt.value='';
- toAmt.value='';
- info.innerHTML='';
+fromAmt.oninput=async()=>{
+ if(!fromAmt.value) return;
+ const amt=Math.floor(fromAmt.value*10**tokens.from.dec);
+ const slip=Math.floor(slippage.value*100);
+ const r=await fetch(`${JUP}/quote?inputMint=${tokens.from.mint}&outputMint=${tokens.to.mint}&amount=${amt}&slippageBps=${slip}`);
+ const j=await r.json();
+ quote=j.data?.[0];
+ if(quote) toAmt.value=(quote.outAmount/10**tokens.to.dec).toFixed(4);
 };
 
-/* ===== QUOTE ===== */
-fromAmt.oninput=()=>{
- clearTimeout(timer);
- timer=setTimeout(getQuote,350);
-};
-
-async function getQuote(){
- const amt=parseFloat(fromAmt.value);
- if(!amt) return;
- const slip=Math.floor(parseFloat(slippage.value)*100);
- const lamports=Math.floor(amt*10**tokens.from.dec);
-
- const r=await fetch(`${JUP}/quote?inputMint=${tokens.from.mint}&outputMint=${tokens.to.mint}&amount=${lamports}&slippageBps=${slip}`);
- quote=await r.json();
- if(!quote?.outAmount) return;
-
- toAmt.value=(quote.outAmount/10**tokens.to.dec).toFixed(6);
- info.innerHTML=`Min: ${(quote.otherAmountThreshold/10**tokens.to.dec).toFixed(6)} | Impact: ${(quote.priceImpactPct*100).toFixed(2)}%`;
-}
-
-/* ===== SWAP ===== */
 swapBtn.onclick=async()=>{
- if(!pk||!quote) return;
+ if(!quote||!wallet) return;
+ status.textContent="Signing...";
  const r=await fetch(`${JUP}/swap`,{
-  method:'POST',
-  headers:{'Content-Type':'application/json'},
-  body:JSON.stringify({
-   quoteResponse:quote,
-   userPublicKey:pk,
-   wrapAndUnwrapSol:true
-  })
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({quoteResponse:quote,userPublicKey:pubkey,wrapAndUnwrapSol:true})
  });
  const {swapTransaction}=await r.json();
- const tx=solanaWeb3.VersionedTransaction.deserialize(
-  Uint8Array.from(atob(swapTransaction),c=>c.charCodeAt(0))
- );
+ const tx=solanaWeb3.VersionedTransaction.deserialize(Uint8Array.from(atob(swapTransaction),c=>c.charCodeAt(0)));
  const signed=await wallet.signTransaction(tx);
- const conn=new solanaWeb3.Connection(RPC,'confirmed');
- const txid=await conn.sendRawTransaction(signed.serialize());
- window.open(`https://solscan.io/tx/${txid}`,'_blank');
+ const sig=await conn.sendRawTransaction(signed.serialize());
+ status.innerHTML=`<a target="_blank" href="https://solscan.io/tx/${sig}" class="neon">SUCCESS</a>`;
 };
 
-/* ===== TOKEN SELECT ===== */
-function openToken(side){
- activeSide=side;
- modal.classList.remove('hidden');
- list.innerHTML='Loading...';
- fetch('https://token.jup.ag/strict')
-  .then(r=>r.json())
-  .then(t=>renderTokens(t.slice(0,30)));
+function swapSides(){
+ [tokens.from,tokens.to]=[tokens.to,tokens.from];
+ fromAmt.value="";toAmt.value="";
+ render();
 }
-
-search.oninput=async(e)=>{
- const v=e.target.value.trim();
- if(v.length>30){
-  const r=await fetch(`https://tokens.jup.ag/token/${v}`);
-  const t=await r.json();
-  renderTokens([t]);
- }
-};
-
-function renderTokens(arr){
- list.innerHTML='';
- arr.forEach(t=>{
-  const d=document.createElement('div');
-  d.className='p-2 rounded-lg hover:bg-white/10 cursor-pointer';
-  d.innerText=`${t.symbol} (${t.name})`;
-  d.onclick=()=>{
-   tokens[activeSide]={ mint:t.address, sym:t.symbol, dec:t.decimals };
-   document.getElementById(activeSide+'Sym').innerText=t.symbol;
-   modal.classList.add('hidden');
-  };
-  list.appendChild(d);
- });
-}
-
-modal.onclick=e=>{
- if(e.target===modal) modal.classList.add('hidden');
-};
 </script>
 </body>
 </html>
