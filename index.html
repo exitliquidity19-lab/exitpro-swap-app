@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>EXIT PRO Swap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script src="https://unpkg.com/bs58@latest/index.js"></script>
+  <style>
+    body { 
+      background: linear-gradient(135deg, #0a0015, #1a0033, #000); 
+      color: #e0e0ff; 
+      margin:0; padding:0; 
+      min-height:100vh; 
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+    .glass-card {
+      background: rgba(30, 20, 60, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(100, 80, 255, 0.2);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .neon-green { color: #00ff9d; text-shadow: 0 0 10px #00ff9d; }
+    .swap-btn {
+      background: linear-gradient(90deg, #00ff9d, #00c9ff);
+      box-shadow: 0 0 20px rgba(0,255,157,0.5);
+    }
+    .swap-btn:hover { box-shadow: 0 0 30px rgba(0,255,157,0.7); }
+    .token-select {
+      background: rgba(40,30,80,0.7);
+      border: 1px solid rgba(100,80,255,0.3);
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+  <!-- Header sederhana seperti Raydium -->
+  <nav class="fixed top-0 w-full glass-card z-50 px-4 py-4 flex justify-between items-center border-b border-purple-900/30">
+    <div class="flex items-center gap-3">
+      <img src="assets/logo.png" alt="EXIT PRO" class="h-10 w-10 rounded-full object-cover border-2 border-green-500/50" onerror="this.src='https://via.placeholder.com/40/00ff9d/000?text=EXIT';" />
+      <span class="text-2xl font-bold neon-green">EXIT PRO</span>
+    </div>
+    <button id="connect-btn" class="px-6 py-2 bg-purple-700 hover:bg-purple-600 rounded-full font-medium transition">
+      Connect Wallet
+    </button>
+  </nav>
+
+  <!-- Main Swap Card (mirip Raydium centered card) -->
+  <main class="flex-1 flex items-center justify-center pt-24 pb-12 px-4">
+    <div class="glass-card p-8 w-full max-w-md">
+      <h1 class="text-3xl font-bold text-center neon-green mb-8">Swap</h1>
+
+      <!-- From Input -->
+      <div class="mb-6">
+        <div class="flex justify-between text-sm text-gray-400 mb-2">
+          <span>From</span>
+          <span id="from-balance" class="text-green-400">Balance: --</span>
+        </div>
+        <div class="flex items-center gap-3 bg-gray-900/50 border border-purple-700/50 rounded-xl p-4">
+          <input id="from-amount" type="number" placeholder="0.0" class="flex-1 bg-transparent outline-none text-3xl text-white" />
+          <select id="from-token" class="token-select rounded-lg px-3 py-2 text-white font-medium">
+            <option value="So11111111111111111111111111111111111111112">SOL</option>
+            <option value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v">USDC</option>
+            <!-- Tambah token lain sesuai kebutuhan -->
+          </select>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="text-center my-4 text-3xl neon-green">↓</div>
+
+      <!-- To Input -->
+      <div class="mb-8">
+        <div class="flex justify-between text-sm text-gray-400 mb-2">
+          <span>To</span>
+          <span id="to-balance" class="text-green-400">Balance: --</span>
+        </div>
+        <div class="flex items-center gap-3 bg-gray-900/50 border border-purple-700/50 rounded-xl p-4">
+          <input id="to-amount" type="text" placeholder="0.0" readonly class="flex-1 bg-transparent outline-none text-3xl text-white" />
+          <select id="to-token" class="token-select rounded-lg px-3 py-2 text-white font-medium">
+            <option value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v">USDC</option>
+            <option value="So11111111111111111111111111111111111111112">SOL</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Info / Slippage -->
+      <div class="text-sm text-gray-400 mb-6 space-y-2">
+        <div class="flex justify-between">
+          <span>Price Impact</span>
+          <span id="price-impact">--</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Slippage</span>
+          <span>0.5%</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Route</span>
+          <span id="route">--</span>
+        </div>
+      </div>
+
+      <!-- Swap Button -->
+      <button id="swap-btn" class="w-full swap-btn text-black font-bold text-lg py-4 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed">
+        Swap
+      </button>
+
+      <div id="status" class="mt-4 text-center text-sm text-yellow-400"></div>
+    </div>
+  </main>
+
+  <script>
+    const JUPITER_API = 'https://quote-api.jup.ag/v6';
+    const REFERRAL_ACCOUNT = '9HdCWUEgEajC47Hni4YvUFdoCzvncsMscXixMsmhNYmH'; // Ganti kalau perlu
+    const REFERRAL_FEE_BPS = 50; // 0.5%
+
+    let walletPublicKey = null;
+    let quoteData = null;
+
+    // Connect Wallet (Phantom)
+    document.getElementById('connect-btn').onclick = async () => {
+      if (window.solana && window.solana.isPhantom) {
+        try {
+          const resp = await window.solana.connect();
+          walletPublicKey = resp.publicKey.toString();
+          document.getElementById('connect-btn').textContent = `Connected (\( {walletPublicKey.slice(0,4)}... \){walletPublicKey.slice(-4)})`;
+          document.getElementById('swap-btn').disabled = false;
+          document.getElementById('status').textContent = 'Wallet connected!';
+        } catch (err) {
+          alert('Connect failed: ' + err.message);
+        }
+      } else {
+        alert('Install Phantom wallet: https://phantom.app/');
+      }
+    };
+
+    // Get Quote when amount changed or token changed
+    async function getQuote() {
+      const amount = document.getElementById('from-amount').value;
+      if (!amount || amount <= 0 || !walletPublicKey) return;
+
+      const inputMint = document.getElementById('from-token').value;
+      const outputMint = document.getElementById('to-token').value;
+
+      document.getElementById('status').textContent = 'Fetching best route...';
+
+      try {
+        const url = `\( {JUPITER_API}/quote?inputMint= \){inputMint}&outputMint=\( {outputMint}&amount= \){Math.floor(amount * 1e9)}&slippageBps=50&referralFeeBps=\( {REFERRAL_FEE_BPS}&referralAccount= \){REFERRAL_ACCOUNT}`;
+        const res = await fetch(url);
+        quoteData = await res.json();
+
+        if (quoteData.error) throw new Error(quoteData.error);
+
+        document.getElementById('to-amount').value = (quoteData.outAmount / 1e6).toFixed(6);
+        document.getElementById('price-impact').textContent = quoteData.priceImpactPct ? (quoteData.priceImpactPct * 100).toFixed(2) + '%' : '--';
+        document.getElementById('route').textContent = quoteData.routePlan?.map(r => r.ammLabel).join(' → ') || '--';
+        document.getElementById('status').textContent = '';
+      } catch (err) {
+        document.getElementById('status').textContent = 'Error: ' + err.message;
+      }
+    }
+
+    document.getElementById('from-amount').addEventListener('input', getQuote);
+    document.getElementById('from-token').addEventListener('change', getQuote);
+    document.getElementById('to-token').addEventListener('change', getQuote);
+
+    // Execute Swap
+    document.getElementById('swap-btn').onclick = async () => {
+      if (!walletPublicKey || !quoteData) return alert('Connect wallet or get quote first');
+
+      document.getElementById('status').textContent = 'Preparing transaction...';
+
+      try {
+        const res = await fetch(`${JUPITER_API}/swap`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            quoteResponse: quoteData,
+            userPublicKey: walletPublicKey,
+            wrapAndUnwrapSol: true,
+            referralAccount: REFERRAL_ACCOUNT,
+            referralFeeBps: REFERRAL_FEE_BPS,
+            computeUnitPriceMicroLamports: 100000 // priority fee
+          })
+        });
+
+        const { swapTransaction } = await res.json();
+
+        const txBuf = Uint8Array.from(atob(swapTransaction), c => c.charCodeAt(0));
+        const tx = solanaWeb3.VersionedTransaction.deserialize(txBuf);
+
+        const signedTx = await window.solana.signTransaction(tx);
+
+        const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+        const txid = await connection.sendRawTransaction(signedTx.serialize(), { skipPreflight: true });
+
+        document.getElementById('status').innerHTML = `Success! <a href="https://solscan.io/tx/${txid}" target="_blank" class="neon-green">View TX</a>`;
+      } catch (err) {
+        document.getElementById('status').textContent = 'Swap failed: ' + err.message;
+      }
+    };
+  </script>
+</body>
+</html>
