@@ -6,6 +6,7 @@
   <title>EXIT PRO - HyperSwap Elite</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script src="https://unpkg.com/@solana/spl-token@latest/lib/index.iife.js"></script>
   <style>
     :root { --neon: #00ff9d; --bg: #090b0f; --card: #131a1a; }
     body { background: var(--bg); color: #e0fef4; font-family: 'Inter', sans-serif; overflow: hidden; }
@@ -17,6 +18,9 @@
     input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     .max-btn { font-size: 10px; background: rgba(0, 255, 157, 0.1); color: var(--neon); padding: 2px 6px; border-radius: 4px; cursor: pointer; font-weight: 800; }
     .max-btn:hover { background: var(--neon); color: black; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #0f1419; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #00ff9d; border-radius: 3px; }
   </style>
 </head>
 <body class="flex flex-col min-h-screen items-center justify-center px-4">
@@ -33,7 +37,7 @@
     </button>
   </nav>
 
-  <div class="glass-card w-full max-w-[440px] p-6 relative">
+  <div class="glass-card w-full max-w-[440px] p-6 relative mt-20">
     <div class="flex justify-between items-center mb-8">
       <h2 class="font-black text-xl italic neon-text tracking-widest uppercase">Swap</h2>
       <span class="text-[9px] font-bold text-[#00ff9d] bg-[#00ff9d]/10 px-2 py-1 rounded border border-[#00ff9d]/20 uppercase">Mainnet Beta</span>
@@ -43,8 +47,8 @@
       <div class="flex justify-between text-[10px] font-bold text-white/40 mb-3 uppercase tracking-widest">
         <span>You Sell</span>
         <div class="flex items-center gap-2">
-            <span id="from-bal">Bal: 0.00</span>
-            <span class="max-btn" id="max-btn">MAX</span>
+          <span id="from-bal">Bal: 0.00</span>
+          <span class="max-btn" id="max-btn">MAX</span>
         </div>
       </div>
       <div class="flex items-center gap-4">
@@ -98,12 +102,7 @@
       
       <div class="text-[10px] font-black text-[#00ff9d]/40 uppercase mb-4 tracking-widest">Verified Tokens</div>
       <div class="flex flex-col gap-3 max-h-72 overflow-y-auto pr-2 custom-scroll" id="token-list">
-        <div onclick="selectToken('SOL', 'So11111111111111111111111111111111111111112', 9, 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png')" class="flex items-center justify-between bg-white/5 p-4 rounded-2xl cursor-pointer hover:bg-[#00ff9d]/10 border border-white/5 transition">
-          <div class="flex items-center gap-3">
-            <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" class="w-9 h-9 rounded-full shadow-md"/>
-            <div class="flex flex-col"><span class="font-black text-sm uppercase">SOL</span><span class="text-[10px] opacity-40">Solana Native</span></div>
-          </div>
-        </div>
+        <!-- Tokens loaded dynamically -->
       </div>
     </div>
   </div>
@@ -113,15 +112,16 @@
     const RPC = 'https://api.mainnet-beta.solana.com';
     let walletPK = null, provider = null, quoteData = null, activeSide = 'from';
     let balances = { from: 0, to: 0 };
+    let tokensLoaded = false;
 
     let tokens = {
       from: { mint: 'So11111111111111111111111111111111111111112', symbol: 'SOL', decimals: 9, logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png' },
       to: { mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol: 'USDC', decimals: 6, logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png' }
     };
 
-    // ELITE CONNECT & TOGGLE DISCONNECT (NO ALERTS)
+    // Connect / Disconnect Wallet
     document.getElementById('connect-btn').onclick = async () => {
-      if(walletPK) { 
+      if (walletPK) {
         walletPK = null; provider = null;
         document.getElementById('connect-btn').textContent = "Connect Wallet";
         document.getElementById('connect-btn').classList.remove('bg-[#00ff9d]', 'text-black');
@@ -129,86 +129,178 @@
         document.getElementById('swap-btn').disabled = true;
         document.getElementById('from-bal').textContent = "Bal: 0.00";
         document.getElementById('to-bal').textContent = "Bal: 0.00";
-        return; 
+        return;
       }
-      
-      const wallet = window.solana || window.solflare || window.backpack;
-      if(!wallet) return alert("Open in Solflare/Phantom App!");
-      
+
+      const wallet = window.solana || window.solflare || window.backpack || window.phantom;
+      if (!wallet) return alert("Buka di wallet Solana seperti Phantom / Solflare!");
+
       try {
-        const res = await wallet.connect();
-        walletPK = (res?.publicKey || wallet.publicKey).toString();
+        await wallet.connect();
+        walletPK = wallet.publicKey.toString();
         provider = wallet;
-        document.getElementById('connect-btn').textContent = `${walletPK.slice(0,4)}...${walletPK.slice(-4)}`;
+        document.getElementById('connect-btn').textContent = `\( {walletPK.slice(0,4)}... \){walletPK.slice(-4)}`;
         document.getElementById('connect-btn').classList.add('bg-[#00ff9d]', 'text-black');
         document.getElementById('swap-btn').textContent = "Swap Now";
         document.getElementById('swap-btn').disabled = false;
         updateBalances();
-      } catch(e) {}
+      } catch (e) {
+        console.error(e);
+      }
     };
 
-    // CA SEARCH LIKE JUPITER
+    // Load verified tokens from Jupiter
+    async function loadTokens() {
+      try {
+        const res = await fetch('https://token.jup.ag/strict');
+        const tokenList = await res.json();
+        const listDiv = document.getElementById('token-list');
+        listDiv.innerHTML = '';
+        tokenList.slice(0, 50).forEach(t => {  // limit 50 biar ga berat
+          const div = document.createElement('div');
+          div.onclick = () => { selectToken(t.symbol, t.address, t.decimals, t.logoURI || ''); closeModal(); };
+          div.className = 'flex items-center justify-between bg-white/5 p-4 rounded-2xl cursor-pointer hover:bg-[#00ff9d]/10 border border-white/5 transition';
+          div.innerHTML = `
+            <div class="flex items-center gap-3">
+              <img src="${t.logoURI || 'https://via.placeholder.com/36/00ff9d/000?text=?'} " class="w-9 h-9 rounded-full shadow-md" onerror="this.src='https://via.placeholder.com/36/00ff9d/000?text=?'"/>
+              <div class="flex flex-col">
+                <span class="font-black text-sm uppercase">${t.symbol}</span>
+                <span class="text-[10px] opacity-40">${t.name || 'Token'}</span>
+              </div>
+            </div>
+          `;
+          listDiv.appendChild(div);
+        });
+      } catch (e) {
+        document.getElementById('token-list').innerHTML = '<div class="text-center text-white/50 p-4">Gagal load verified tokens</div>';
+      }
+      tokensLoaded = true;
+    }
+
+    // CA Search (Jupiter + on-chain fallback)
     document.getElementById('ca-search').oninput = async (e) => {
       const ca = e.target.value.trim();
-      if(ca.length >= 32) {
-        document.getElementById('status').textContent = "FETCHING TOKEN...";
-        try {
-          const res = await fetch(`https://tokens.jup.ag/token/${ca}`);
+      if (ca.length < 32 || ca.length > 44) return;
+
+      document.getElementById('status').textContent = "Mencari token...";
+
+      // Coba dari Jupiter dulu
+      try {
+        const res = await fetch(`https://token.jup.ag/token/${ca}`);
+        if (res.ok) {
           const token = await res.json();
-          if(token && token.symbol) {
+          if (token && token.symbol) {
             selectToken(token.symbol, ca, token.decimals, token.logoURI || '');
             closeModal();
-            document.getElementById('status').textContent = "TOKEN READY";
+            document.getElementById('status').textContent = "Token ditemukan!";
+            return;
           }
-        } catch(e) { document.getElementById('status').textContent = "CA NOT FOUND"; }
+        }
+      } catch {}
+
+      // Fallback: baca langsung dari chain (mint + metadata)
+      try {
+        const conn = new solanaWeb3.Connection(RPC);
+        const mint = new solanaWeb3.PublicKey(ca);
+        const mintInfo = await splToken.getMint(conn, mint);
+        let symbol = 'UNKNOWN';
+        let name = '';
+        let logo = '';
+
+        // Metadata PDA (Metaplex)
+        const METADATA_PROGRAM = new solanaWeb3.PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzH6a8bt518x1s");
+        const [metadataPDA] = solanaWeb3.PublicKey.findProgramAddressSync(
+          [Buffer.from("metadata"), METADATA_PROGRAM.toBuffer(), mint.toBuffer()],
+          METADATA_PROGRAM
+        );
+
+        const acc = await conn.getAccountInfo(metadataPDA);
+        if (acc) {
+          const data = acc.data;
+          let offset = 1 + 32 + 32; // skip key + update auth + mint
+          const nameLen = data.readUInt32LE(offset); offset += 4;
+          name = data.slice(offset, offset + nameLen).toString('utf8').replace(/\0/g, '').trim();
+          offset += nameLen;
+          const symLen = data.readUInt32LE(offset); offset += 4;
+          symbol = data.slice(offset, offset + symLen).toString('utf8').replace(/\0/g, '').trim();
+          offset += symLen;
+          const uriLen = data.readUInt32LE(offset); offset += 4;
+          const uri = data.slice(offset, offset + uriLen).toString('utf8').replace(/\0/g, '').trim();
+
+          if (uri) {
+            try {
+              const meta = await (await fetch(uri)).json();
+              logo = meta.image || '';
+            } catch {}
+          }
+        }
+
+        if (symbol === 'UNKNOWN' && name) symbol = name.toUpperCase().slice(0, 8);
+
+        selectToken(symbol || 'TOKEN', ca, mintInfo.decimals, logo || 'https://via.placeholder.com/36/00ff9d/000?text=?');
+        closeModal();
+        document.getElementById('status').textContent = "Token on-chain ditemukan!";
+      } catch (err) {
+        document.getElementById('status').textContent = "CA tidak valid / bukan token";
       }
     };
 
     function selectToken(sym, mint, dec, logo) {
-      tokens[activeSide] = { mint, symbol: sym, decimals: dec, logo: logo || 'https://via.placeholder.com/32/00ff9d/000?text=?' };
+      tokens[activeSide] = { mint, symbol: sym, decimals: dec, logo };
       document.getElementById(`${activeSide}-symbol`).textContent = sym;
-      document.getElementById(`${activeSide}-logo`).src = tokens[activeSide].logo;
+      document.getElementById(`${activeSide}-logo`).src = logo;
       updateBalances();
       getQuote();
     }
 
-    function openSelector(side) { activeSide = side; document.getElementById('token-modal').style.display = 'flex'; }
-    function closeModal() { document.getElementById('token-modal').style.display = 'none'; }
+    function openSelector(side) {
+      activeSide = side;
+      document.getElementById('token-modal').style.display = 'flex';
+      if (!tokensLoaded) loadTokens();
+    }
 
-    // REAL BLOCKCHAIN SYNC
+    function closeModal() {
+      document.getElementById('token-modal').style.display = 'none';
+    }
+
     async function updateBalances() {
-      if(!walletPK) return;
+      if (!walletPK) return;
       const conn = new solanaWeb3.Connection(RPC);
       const pk = new solanaWeb3.PublicKey(walletPK);
-      
-      try {
-        const getBal = async (mint, side) => {
-          if(mint.startsWith('So11')) {
-            const b = await conn.getBalance(pk);
-            const val = (b/1e9).toFixed(3);
-            balances[side] = val;
+
+      const getBal = async (mint, side) => {
+        try {
+          if (mint === 'So11111111111111111111111111111111111111112') {
+            const bal = await conn.getBalance(pk);
+            const val = (bal / 1e9).toFixed(4);
+            balances[side] = parseFloat(val);
             document.getElementById(`${side}-bal`).textContent = `Bal: ${val}`;
           } else {
             const accounts = await conn.getParsedTokenAccountsByOwner(pk, { mint: new solanaWeb3.PublicKey(mint) });
-            const val = accounts.value[0]?.account.data.parsed.info.tokenAmount.uiAmount || 0;
-            balances[side] = val;
-            document.getElementById(`${side}-bal`).textContent = `Bal: ${val.toFixed(2)}`;
+            const val = accounts.value[0]?.account.data.parsed.info.tokenAmount.uiAmountString || '0';
+            balances[side] = parseFloat(val);
+            document.getElementById(`${side}-bal`).textContent = `Bal: ${parseFloat(val).toFixed(4)}`;
           }
-        };
-        getBal(tokens.from.mint, 'from');
-        getBal(tokens.to.mint, 'to');
-      } catch(e) {}
+        } catch {}
+      };
+
+      await Promise.all([
+        getBal(tokens.from.mint, 'from'),
+        getBal(tokens.to.mint, 'to')
+      ]);
     }
 
-    // JUPITER QUOTE
     async function getQuote() {
-      const amt = document.getElementById('from-amount').value;
-      if(!amt || amt <= 0) return;
+      const amt = parseFloat(document.getElementById('from-amount').value);
+      if (!amt || amt <= 0) return;
+
       try {
-        const res = await fetch(`${JUP_API}/quote?inputMint=${tokens.from.mint}&outputMint=${tokens.to.mint}&amount=${Math.floor(amt * Math.pow(10, tokens.from.decimals))}&slippageBps=50`);
+        const res = await fetch(`\( {JUP_API}/quote?inputMint= \){tokens.from.mint}&outputMint=\( {tokens.to.mint}&amount= \){Math.floor(amt * 10 ** tokens.from.decimals)}&slippageBps=50`);
         quoteData = await res.json();
-        document.getElementById('to-amount').value = (quoteData.outAmount / Math.pow(10, tokens.to.decimals)).toFixed(4);
-      } catch(e) {}
+        document.getElementById('to-amount').value = (quoteData.outAmount / 10 ** tokens.to.decimals).toFixed(6);
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     document.getElementById('from-amount').oninput = getQuote;
@@ -218,22 +310,34 @@
     };
 
     document.getElementById('swap-btn').onclick = async () => {
-      if(!quoteData || !walletPK) return;
-      document.getElementById('status').textContent = "WAITING FOR APPROVAL...";
+      if (!quoteData || !walletPK) return;
+      document.getElementById('status').textContent = "Menunggu konfirmasi wallet...";
+
       try {
         const res = await fetch(`${JUP_API}/swap`, {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ quoteResponse: quoteData, userPublicKey: walletPK, wrapAndUnwrapSol: true })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            quoteResponse: quoteData,
+            userPublicKey: walletPK,
+            wrapAndUnwrapSol: true,
+            computeUnitPriceMicroLamports: 100000
+          })
         });
         const { swapTransaction } = await res.json();
+
         const txBuf = Uint8Array.from(atob(swapTransaction), c => c.charCodeAt(0));
         const tx = solanaWeb3.VersionedTransaction.deserialize(txBuf);
-        const signed = await provider.signTransaction(tx);
+        const signedTx = await provider.signTransaction(tx);
+
         const conn = new solanaWeb3.Connection(RPC, 'confirmed');
-        const txid = await conn.sendRawTransaction(signed.serialize());
-        document.getElementById('status').innerHTML = `<a href="https://solscan.io/tx/${txid}" target="_blank" class="text-[#00ff9d] underline uppercase font-black">SUCCESS! VIEW TRANSACTION</a>`;
-      } catch(e) { document.getElementById('status').textContent = "SWAP FAILED"; }
+        const txid = await conn.sendRawTransaction(signedTx.serialize(), { skipPreflight: true });
+
+        document.getElementById('status').innerHTML = `Sukses! <a href="https://solscan.io/tx/${txid}" target="_blank" class="text-[#00ff9d] underline">Lihat di Solscan</a>`;
+      } catch (e) {
+        console.error(e);
+        document.getElementById('status').textContent = "Swap gagal: " + (e.message || 'Unknown error');
+      }
     };
   </script>
 </body>
