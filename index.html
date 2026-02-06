@@ -37,7 +37,7 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-  <!-- Header sederhana seperti Raydium -->
+  <!-- Header -->
   <nav class="fixed top-0 w-full glass-card z-50 px-4 py-4 flex justify-between items-center border-b border-purple-900/30">
     <div class="flex items-center gap-3">
       <img src="assets/logo.png" alt="EXIT PRO" class="h-10 w-10 rounded-full object-cover border-2 border-green-500/50" onerror="this.src='https://via.placeholder.com/40/00ff9d/000?text=EXIT';" />
@@ -48,12 +48,12 @@
     </button>
   </nav>
 
-  <!-- Main Swap Card (mirip Raydium centered card) -->
+  <!-- Main Swap Card -->
   <main class="flex-1 flex items-center justify-center pt-24 pb-12 px-4">
     <div class="glass-card p-8 w-full max-w-md">
       <h1 class="text-3xl font-bold text-center neon-green mb-8">Swap</h1>
 
-      <!-- From Input -->
+      <!-- From -->
       <div class="mb-6">
         <div class="flex justify-between text-sm text-gray-400 mb-2">
           <span>From</span>
@@ -64,7 +64,6 @@
           <select id="from-token" class="token-select rounded-lg px-3 py-2 text-white font-medium">
             <option value="So11111111111111111111111111111111111111112">SOL</option>
             <option value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v">USDC</option>
-            <!-- Tambah token lain sesuai kebutuhan -->
           </select>
         </div>
       </div>
@@ -72,7 +71,7 @@
       <!-- Arrow -->
       <div class="text-center my-4 text-3xl neon-green">↓</div>
 
-      <!-- To Input -->
+      <!-- To -->
       <div class="mb-8">
         <div class="flex justify-between text-sm text-gray-400 mb-2">
           <span>To</span>
@@ -87,7 +86,7 @@
         </div>
       </div>
 
-      <!-- Info / Slippage -->
+      <!-- Info -->
       <div class="text-sm text-gray-400 mb-6 space-y-2">
         <div class="flex justify-between">
           <span>Price Impact</span>
@@ -103,8 +102,8 @@
         </div>
       </div>
 
-      <!-- Swap Button -->
-      <button id="swap-btn" class="w-full swap-btn text-black font-bold text-lg py-4 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed">
+      <!-- Button -->
+      <button id="swap-btn" disabled class="w-full swap-btn text-black font-bold text-lg py-4 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed">
         Swap
       </button>
 
@@ -114,13 +113,14 @@
 
   <script>
     const JUPITER_API = 'https://quote-api.jup.ag/v6';
-    const REFERRAL_ACCOUNT = '9HdCWUEgEajC47Hni4YvUFdoCzvncsMscXixMsmhNYmH'; // Ganti kalau perlu
-    const REFERRAL_FEE_BPS = 50; // 0.5%
+    const REFERRAL_ACCOUNT = '9HdCWUEgEajC47Hni4YvUFdoCzvncsMscXixMsmhNYmH';
+    const REFERRAL_FEE_BPS = 50;
 
     let walletPublicKey = null;
     let quoteData = null;
+    let debounceTimer = null;
 
-    // Connect Wallet (Phantom)
+    // Connect Wallet
     document.getElementById('connect-btn').onclick = async () => {
       if (window.solana && window.solana.isPhantom) {
         try {
@@ -137,7 +137,7 @@
       }
     };
 
-    // Get Quote when amount changed or token changed
+    // Debounced Get Quote
     async function getQuote() {
       const amount = document.getElementById('from-amount').value;
       if (!amount || amount <= 0 || !walletPublicKey) return;
@@ -163,13 +163,18 @@
       }
     }
 
-    document.getElementById('from-amount').addEventListener('input', getQuote);
+    // Debounce input (hindari spam API)
+    document.getElementById('from-amount').addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(getQuote, 800);
+    });
+
     document.getElementById('from-token').addEventListener('change', getQuote);
     document.getElementById('to-token').addEventListener('change', getQuote);
 
     // Execute Swap
     document.getElementById('swap-btn').onclick = async () => {
-      if (!walletPublicKey || !quoteData) return alert('Connect wallet or get quote first');
+      if (!walletPublicKey || !quoteData) return alert('Connect wallet or enter amount first');
 
       document.getElementById('status').textContent = 'Preparing transaction...';
 
@@ -183,7 +188,7 @@
             wrapAndUnwrapSol: true,
             referralAccount: REFERRAL_ACCOUNT,
             referralFeeBps: REFERRAL_FEE_BPS,
-            computeUnitPriceMicroLamports: 100000 // priority fee
+            computeUnitPriceMicroLamports: 100000
           })
         });
 
@@ -197,7 +202,7 @@
         const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com', 'confirmed');
         const txid = await connection.sendRawTransaction(signedTx.serialize(), { skipPreflight: true });
 
-        document.getElementById('status').innerHTML = `Success! <a href="https://solscan.io/tx/${txid}" target="_blank" class="neon-green">View TX</a>`;
+        document.getElementById('status').innerHTML = `Success! <a href="https://solscan.io/tx/${txid}" target="_blank" class="neon-green underline">View TX on Solscan</a>`;
       } catch (err) {
         document.getElementById('status').textContent = 'Swap failed: ' + err.message;
       }
