@@ -1,252 +1,244 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>EXIT PRO Swap</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
-
-<style>
-:root{
- --neon:#00ff9d;
- --bg:#090b0f;
- --card:#11181a;
-}
-body{
- background:var(--bg);
- color:#eafff6;
- font-family:Inter,system-ui;
-}
-.glass{
- background:var(--card);
- border:1px solid rgba(0,255,157,.15);
- border-radius:20px;
-}
-.neon{color:var(--neon)}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>EXIT PRO - HyperSwap Elite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <style>
+    :root { --neon: #00ff9d; --bg: #090b0f; --card: #131a1a; }
+    body { background: var(--bg); color: #e0fef4; font-family: 'Inter', sans-serif; overflow: hidden; }
+    .glass-card { background: var(--card); border: 1px solid rgba(0, 255, 157, 0.1); border-radius: 24px; box-shadow: 0 0 40px rgba(0,0,0,0.6); }
+    .token-box { background: #1b2424; border: 1px solid transparent; transition: 0.2s; }
+    .token-box:focus-within { border-color: var(--neon); }
+    .neon-text { color: var(--neon); text-shadow: 0 0 10px rgba(0, 255, 157, 0.4); }
+    #token-modal { background: rgba(0,0,0,0.9); backdrop-filter: blur(12px); display: none; }
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .max-btn { font-size: 10px; background: rgba(0, 255, 157, 0.1); color: var(--neon); padding: 2px 6px; border-radius: 4px; cursor: pointer; font-weight: 800; }
+    .max-btn:hover { background: var(--neon); color: black; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #00ff9d; border-radius: 10px; }
+  </style>
 </head>
+<body class="flex flex-col min-h-screen items-center justify-center px-4">
 
-<body class="min-h-screen flex justify-center items-center p-4">
+  <nav class="fixed top-0 w-full flex justify-between items-center p-6 z-50 bg-[#090b0f]/80 backdrop-blur-md border-b border-white/5">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full border-2 border-[#00ff9d] p-0.5 overflow-hidden">
+        <img src="assets/logo.png" class="w-full h-full object-cover rounded-full" onerror="this.src='https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'"/>
+      </div>
+      <span class="font-black text-xl tracking-tighter neon-text uppercase italic">EXIT PRO</span>
+    </div>
+    <button id="connect-btn" class="px-5 py-2 border border-[#00ff9d] text-[#00ff9d] rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
+      Connect Wallet
+    </button>
+  </nav>
 
-<div class="glass w-full max-w-md p-5">
+  <div class="glass-card w-full max-w-[440px] p-6 relative">
+    <div class="flex justify-between items-center mb-8">
+      <h2 class="font-black text-xl italic neon-text tracking-widest uppercase">Swap</h2>
+      <span class="text-[9px] font-bold text-[#00ff9d] bg-[#00ff9d]/10 px-2 py-1 rounded border border-[#00ff9d]/20 uppercase">Mainnet Beta</span>
+    </div>
 
-<!-- HEADER -->
-<div class="flex justify-between items-center mb-5">
- <div class="flex items-center gap-2">
-  <img class="w-8 h-8 rounded-full border border-[var(--neon)]"
-   src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png">
-  <span class="font-black italic neon">EXIT PRO</span>
- </div>
- <button id="connectBtn"
-  class="px-4 py-2 text-xs rounded-xl border border-[var(--neon)] neon font-bold">
-  CONNECT
- </button>
-</div>
+    <div class="token-box p-5 rounded-3xl mb-1">
+      <div class="flex justify-between text-[10px] font-bold text-white/40 mb-3 uppercase tracking-widest">
+        <span>You Sell</span>
+        <div class="flex items-center gap-2">
+          <span id="from-bal">Bal: 0.00</span>
+          <span class="max-btn" id="max-btn">MAX</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <input id="from-amount" type="number" placeholder="0.0" class="bg-transparent text-3xl font-bold outline-none text-white w-full" />
+        <div onclick="openSelector('from')" class="flex items-center gap-2 bg-black/40 p-2 pr-4 rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition">
+          <img id="from-logo" src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" class="w-7 h-7 rounded-full shadow-lg"/>
+          <span id="from-symbol" class="font-black text-sm uppercase">SOL</span>
+          <svg class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+        </div>
+      </div>
+    </div>
 
-<!-- FROM -->
-<div class="glass p-4 mb-2">
- <div class="flex justify-between text-xs opacity-60 mb-1">
-  <span>YOU SELL</span>
-  <span id="fromBal">Bal: 0</span>
- </div>
- <div class="flex items-center gap-3">
-  <input id="fromAmt" type="number" placeholder="0.0"
-   class="bg-transparent text-2xl font-bold outline-none w-full">
-  <button onclick="openToken('from')" class="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-xl">
-   <img id="fromLogo" class="w-6 h-6 rounded-full">
-   <span id="fromSym" class="font-bold"></span>
-  </button>
- </div>
-</div>
+    <div class="flex justify-center -my-4 relative z-10">
+      <button id="switch-btn" class="bg-[#131a1a] border-2 border-[#1b2424] p-2.5 rounded-2xl text-[#00ff9d] hover:rotate-180 transition-all duration-500 shadow-[0_0_20px_rgba(0,255,157,0.2)]">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
+      </button>
+    </div>
 
-<div class="flex justify-center my-2">
- <button onclick="swapSides()" class="border border-[var(--neon)] rounded-full px-3 py-1 neon">⇅</button>
-</div>
+    <div class="token-box p-5 rounded-3xl mt-1 mb-8">
+      <div class="flex justify-between text-[10px] font-bold text-white/40 mb-3 uppercase tracking-widest">
+        <span>You Buy</span>
+        <span id="to-bal">Bal: 0.00</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <input id="to-amount" type="text" placeholder="0.0" readonly class="bg-transparent text-3xl font-bold outline-none text-white/20 w-full" />
+        <div onclick="openSelector('to')" class="flex items-center gap-2 bg-black/40 p-2 pr-4 rounded-2xl border border-white/5 cursor-pointer hover:bg-white/10 transition">
+          <img id="to-logo" src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png" class="w-7 h-7 rounded-full shadow-lg"/>
+          <span id="to-symbol" class="font-black text-sm uppercase">USDC</span>
+          <svg class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+        </div>
+      </div>
+    </div>
 
-<!-- TO -->
-<div class="glass p-4 mb-3">
- <div class="flex justify-between text-xs opacity-60 mb-1">
-  <span>YOU BUY</span>
-  <span id="toBal">Bal: 0</span>
- </div>
- <div class="flex items-center gap-3">
-  <input id="toAmt" readonly placeholder="0.0"
-   class="bg-transparent text-2xl font-bold outline-none w-full opacity-40">
-  <button onclick="openToken('to')" class="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-xl">
-   <img id="toLogo" class="w-6 h-6 rounded-full">
-   <span id="toSym" class="font-bold"></span>
-  </button>
- </div>
-</div>
+    <button id="swap-btn" disabled class="w-full py-5 bg-[#00ff9d] text-black font-black rounded-2xl uppercase tracking-[0.3em] text-sm transition-all active:scale-95 disabled:opacity-20 shadow-[0_0_30px_rgba(0,255,157,0.2)]">
+      Connect Wallet
+    </button>
+    <div id="status" class="mt-6 text-[9px] text-center font-bold text-white/20 uppercase tracking-[3px] min-h-[12px]"></div>
+  </div>
 
-<!-- INFO -->
-<div class="text-xs opacity-70 space-y-1 mb-3">
- <div class="flex justify-between"><span>Price Impact</span><span id="impact">-</span></div>
- <div class="flex justify-between"><span>Min Received</span><span id="minOut">-</span></div>
-</div>
+  <div id="token-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-[420px] p-8 border-[#00ff9d]/30 relative">
+      <div class="flex justify-between items-center mb-8">
+        <h3 class="font-black uppercase tracking-widest text-base neon-text italic">Select Token</h3>
+        <button onclick="closeModal()" class="text-white/40 hover:text-white transition-colors">✕</button>
+      </div>
+      <input id="ca-search" type="text" placeholder="Paste CA or search name" class="w-full bg-black/60 border border-white/10 rounded-2xl p-4 outline-none focus:border-[#00ff9d] text-sm transition-all text-[#00ff9d]" />
+      <div class="mt-6 custom-scroll overflow-y-auto max-h-64 flex flex-col gap-2" id="token-list"></div>
+    </div>
+  </div>
 
-<div class="flex justify-between items-center text-xs mb-3">
- <span>Slippage</span>
- <input id="slippage" value="0.5"
-  class="w-16 bg-black/40 px-2 py-1 rounded outline-none text-right">
-</div>
+  <script>
+    const RPC = 'https://api.mainnet-beta.solana.com';
+    const JUP_API = 'https://quote-api.jup.ag/v6';
+    let walletPK = null, provider = null, quoteData = null, activeSide = 'from';
+    let balances = { from: 0, to: 0 };
+    let fullTokenList = [];
 
-<button id="swapBtn"
- class="w-full py-3 rounded-xl bg-[var(--neon)] text-black font-black">
- CONNECT WALLET
-</button>
+    let tokens = {
+      from: { mint: 'So11111111111111111111111111111111111111112', symbol: 'SOL', decimals: 9, logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png' },
+      to: { mint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', symbol: 'USDC', decimals: 6, logo: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png' }
+    };
 
-<button onclick="toggleRoute()" class="text-xs neon mt-3">View Route</button>
-<div id="routeBox" class="hidden text-xs opacity-60 mt-1"></div>
+    // One-Click Toggle Connect/Disconnect
+    document.getElementById('connect-btn').onclick = async () => {
+      if (walletPK) {
+        walletPK = null; provider = null;
+        document.getElementById('connect-btn').textContent = "Connect Wallet";
+        document.getElementById('connect-btn').classList.remove('bg-[#00ff9d]', 'text-black');
+        document.getElementById('swap-btn').textContent = "Connect Wallet";
+        document.getElementById('swap-btn').disabled = true;
+        document.getElementById('from-bal').textContent = "Bal: 0.00";
+        return;
+      }
+      const wallet = window.solana || window.solflare;
+      if (!wallet) return alert("Buka di Solflare/Phantom App!");
+      try {
+        const res = await wallet.connect();
+        walletPK = (res?.publicKey || wallet.publicKey).toString();
+        provider = wallet;
+        document.getElementById('connect-btn').textContent = `${walletPK.slice(0,4)}...${walletPK.slice(-4)}`;
+        document.getElementById('connect-btn').classList.add('bg-[#00ff9d]', 'text-black');
+        document.getElementById('swap-btn').textContent = "Swap Now";
+        document.getElementById('swap-btn').disabled = false;
+        updateBalances();
+      } catch (e) {}
+    };
 
-<div id="status" class="text-center text-xs mt-3 opacity-70"></div>
+    // CA Search Logic like Jupiter
+    document.getElementById('ca-search').oninput = async (e) => {
+      const input = e.target.value.trim();
+      if (input.length >= 32) {
+        document.getElementById('status').textContent = "Searching Token...";
+        try {
+          const res = await fetch(`https://tokens.jup.ag/token/${input}`);
+          const t = await res.json();
+          if (t && t.symbol) {
+            renderTokenList([{ symbol: t.symbol, address: input, decimals: t.decimals, logoURI: t.logoURI, name: t.name }]);
+            document.getElementById('status').textContent = "";
+          }
+        } catch (e) { document.getElementById('status').textContent = "Token Not Found"; }
+      } else {
+        const filtered = fullTokenList.filter(t => t.symbol.toLowerCase().includes(input.toLowerCase())).slice(0, 20);
+        renderTokenList(filtered);
+      }
+    };
 
-</div>
+    function openSelector(side) { 
+      activeSide = side; 
+      document.getElementById('token-modal').style.display = 'flex';
+      if (fullTokenList.length === 0) loadInitialTokens();
+      else renderTokenList(fullTokenList.slice(0, 20));
+    }
 
-<!-- TOKEN MODAL -->
-<div id="modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4">
- <div class="glass w-full max-w-sm p-4">
-  <input id="search" placeholder="Paste CA / search symbol"
-   class="w-full bg-black/40 p-3 rounded outline-none mb-3">
-  <div id="tokenList" class="max-h-64 overflow-auto space-y-2"></div>
- </div>
-</div>
+    function closeModal() { document.getElementById('token-modal').style.display = 'none'; }
 
-<script>
-const RPC="https://api.mainnet-beta.solana.com";
-const JUP="https://quote-api.jup.ag/v6";
-const TOKENS_API="https://token.jup.ag/all";
+    async function loadInitialTokens() {
+      try {
+        const res = await fetch('https://token.jup.ag/strict');
+        fullTokenList = await res.json();
+        renderTokenList(fullTokenList.slice(0, 20));
+      } catch (e) {}
+    }
 
-const conn=new solanaWeb3.Connection(RPC);
-let wallet=null,pubkey=null,side="from",quote=null,tokenList=[];
+    function renderTokenList(list) {
+      const container = document.getElementById('token-list');
+      container.innerHTML = '';
+      list.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10';
+        div.onclick = () => {
+          tokens[activeSide] = { mint: t.address, symbol: t.symbol, decimals: t.decimals, logo: t.logoURI };
+          document.getElementById(`${activeSide}-symbol`).textContent = t.symbol;
+          document.getElementById(`${activeSide}-logo`).src = t.logoURI;
+          closeModal();
+          updateBalances();
+        };
+        div.innerHTML = `<img src="${t.logoURI}" class="w-8 h-8 rounded-full"><div><p class="font-bold">${t.symbol}</p><p class="text-[10px] opacity-50">${t.name}</p></div>`;
+        container.appendChild(div);
+      });
+    }
 
-let tokens={
- from:{mint:"So11111111111111111111111111111111111111112",symbol:"SOL",decimals:9,logoURI:"https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png"},
- to:{mint:"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",symbol:"USDC",decimals:6,logoURI:"https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png"}
-};
+    async function updateBalances() {
+      if (!walletPK) return;
+      const conn = new solanaWeb3.Connection(RPC);
+      const pk = new solanaWeb3.PublicKey(walletPK);
+      try {
+        if (tokens.from.mint === 'So11111111111111111111111111111111111111112') {
+          const bal = await conn.getBalance(pk);
+          balances.from = (bal / 1e9).toFixed(4);
+        } else {
+          const accs = await conn.getParsedTokenAccountsByOwner(pk, { mint: new solanaWeb3.PublicKey(tokens.from.mint) });
+          balances.from = accs.value[0]?.account.data.parsed.info.tokenAmount.uiAmount || 0;
+        }
+        document.getElementById('from-bal').textContent = `Bal: ${balances.from}`;
+      } catch (e) {}
+    }
 
-function render(){
- fromLogo.src=tokens.from.logoURI;
- toLogo.src=tokens.to.logoURI;
- fromSym.textContent=tokens.from.symbol;
- toSym.textContent=tokens.to.symbol;
-}
-render();
+    async function getQuote() {
+      const amt = document.getElementById('from-amount').value;
+      if (!amt || amt <= 0) return;
+      try {
+        const res = await fetch(`${JUP_API}/quote?inputMint=${tokens.from.mint}&outputMint=${tokens.to.mint}&amount=${Math.floor(amt * (10 ** tokens.from.decimals))}&slippageBps=50`);
+        quoteData = await res.json();
+        document.getElementById('to-amount').value = (quoteData.outAmount / (10 ** tokens.to.decimals)).toFixed(4);
+      } catch (e) {}
+    }
 
-fetch(TOKENS_API).then(r=>r.json()).then(j=>tokenList=j);
+    document.getElementById('from-amount').oninput = getQuote;
+    document.getElementById('max-btn').onclick = () => { document.getElementById('from-amount').value = balances.from; getQuote(); };
 
-/* CONNECT MULTI WALLET */
-connectBtn.onclick=async()=>{
- const w=window.solana||window.solflare||window.backpack;
- if(!w) return alert("Install Solana wallet");
- wallet=w;
- const r=await w.connect();
- pubkey=r.publicKey.toString();
- connectBtn.textContent=pubkey.slice(0,4)+"..."+pubkey.slice(-4);
- swapBtn.textContent="SWAP";
- refreshBalances();
-};
-
-/* BALANCE */
-async function getBal(mint){
- if(!pubkey) return 0;
- if(mint===tokens.from.mint && mint.startsWith("So1")){
-  return (await conn.getBalance(new solanaWeb3.PublicKey(pubkey)))/1e9;
- }
- const acc=await conn.getParsedTokenAccountsByOwner(
-  new solanaWeb3.PublicKey(pubkey),
-  {mint:new solanaWeb3.PublicKey(mint)}
- );
- return acc.value[0]?.account.data.parsed.info.tokenAmount.uiAmount||0;
-}
-
-async function refreshBalances(){
- fromBal.textContent="Bal: "+await getBal(tokens.from.mint);
- toBal.textContent="Bal: "+await getBal(tokens.to.mint);
-}
-
-/* QUOTE */
-fromAmt.oninput=async()=>{
- if(!fromAmt.value) return;
- const amt=Math.floor(fromAmt.value*10**tokens.from.decimals);
- const slip=Math.floor(slippage.value*100);
- const r=await fetch(`${JUP}/quote?inputMint=${tokens.from.mint}&outputMint=${tokens.to.mint}&amount=${amt}&slippageBps=${slip}`);
- const j=await r.json();
- quote=j.data?.[0];
- if(!quote) return;
- toAmt.value=(quote.outAmount/10**tokens.to.decimals).toFixed(4);
- impact.textContent=(quote.priceImpactPct*100).toFixed(2)+"%";
- minOut.textContent=(quote.otherAmountThreshold/10**tokens.to.decimals).toFixed(4);
- routeBox.innerHTML=quote.routePlan.map(r=>`${r.swapInfo.label} (${r.percent}%)`).join("<br>");
-};
-
-/* SWAP */
-swapBtn.onclick=async()=>{
- if(!quote||!wallet) return;
- status.textContent="Signing...";
- try{
-  const r=await fetch(`${JUP}/swap`,{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({quoteResponse:quote,userPublicKey:pubkey,wrapAndUnwrapSol:true})
-  });
-  const {swapTransaction}=await r.json();
-  const tx=solanaWeb3.VersionedTransaction.deserialize(
-   Uint8Array.from(atob(swapTransaction),c=>c.charCodeAt(0))
-  );
-  const signed=await wallet.signTransaction(tx);
-  const sig=await conn.sendRawTransaction(signed.serialize());
-  status.innerHTML=`<a target="_blank" class="neon" href="https://solscan.io/tx/${sig}">SUCCESS</a>`;
-  refreshBalances();
- }catch(e){
-  status.textContent="Swap failed";
- }
-};
-
-/* TOKEN MODAL */
-function openToken(s){
- side=s;
- modal.classList.remove("hidden");
- search.value="";
- renderList(tokenList.slice(0,40));
-}
-
-search.oninput=()=>{
- const q=search.value.toLowerCase();
- renderList(tokenList.filter(t=>
-  t.address.toLowerCase()===q||t.symbol?.toLowerCase().includes(q)
- ).slice(0,40));
-};
-
-function renderList(arr){
- tokenList.innerHTML="";
- arr.forEach(t=>{
-  const d=document.createElement("div");
-  d.className="flex items-center gap-3 p-2 rounded hover:bg-black/40 cursor-pointer";
-  d.innerHTML=`<img src="${t.logoURI||''}" class="w-6 h-6 rounded-full">
-  <div><div class="font-bold">${t.symbol||"UNKNOWN"}</div>
-  <div class="text-xs opacity-50">${t.address.slice(0,6)}...</div></div>`;
-  d.onclick=()=>{
-   tokens[side]=t;
-   modal.classList.add("hidden");
-   fromAmt.value="";toAmt.value="";
-   render();refreshBalances();
-  };
-  tokenList.appendChild(d);
- });
-}
-
-function swapSides(){
- [tokens.from,tokens.to]=[tokens.to,tokens.from];
- fromAmt.value="";toAmt.value="";
- render();refreshBalances();
-}
-function toggleRoute(){routeBox.classList.toggle("hidden");}
-</script>
+    document.getElementById('swap-btn').onclick = async () => {
+      if (!quoteData || !walletPK) return;
+      document.getElementById('status').textContent = "Signing...";
+      try {
+        const res = await fetch(`${JUP_API}/swap`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ quoteResponse: quoteData, userPublicKey: walletPK, wrapAndUnwrapSol: true })
+        });
+        const { swapTransaction } = await res.json();
+        const txBuf = Uint8Array.from(atob(swapTransaction), c => c.charCodeAt(0));
+        const tx = solanaWeb3.VersionedTransaction.deserialize(txBuf);
+        const signed = await provider.signTransaction(tx);
+        const conn = new solanaWeb3.Connection(RPC, 'confirmed');
+        const txid = await conn.sendRawTransaction(signed.serialize());
+        document.getElementById('status').innerHTML = `<a href="https://solscan.io/tx/${txid}" target="_blank" class="text-green-400">Success! View Transaction</a>`;
+      } catch (e) { document.getElementById('status').textContent = "Swap Failed"; }
+    };
+  </script>
 </body>
-  </html>
+</html>
+
 
 
 
